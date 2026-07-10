@@ -45,6 +45,26 @@
   .comp-in.prefilled{color:#c19a4b;font-style:italic}
   @media(max-width:600px){.company-cols{grid-template-columns:1fr}}
 
+  /* блок «Ваши контакты» (только serv) */
+  .mgr-set{background:#eef2fe;border:1px solid #dbe3fa;border-radius:16px;padding:16px 20px;margin-bottom:18px}
+  .mgr-set-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .mgr-set-title{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:800;color:#3b57d6}
+  .mgr-set-title svg{width:19px;height:19px;color:#3b57d6}
+  .mgr-set-title span{font-weight:600;color:var(--muted)}
+  .mgr-set-toggle{background:none;border:0;color:var(--accent);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .mgr-set-sub{font-size:13px;color:var(--muted);margin:6px 0 14px}
+  .mgr-set-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .mgr-fld{display:flex;flex-direction:column}
+  .mgr-fld label{font-size:12.5px;color:var(--muted);margin-bottom:5px}
+  .mgr-fld input{border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;font-size:14px;color:var(--ink);background:#fff;outline:0;transition:border-color .15s}
+  .mgr-fld input:focus{border-color:var(--accent)}
+  .mgr-set.collapsed .mgr-set-sub,.mgr-set.collapsed .mgr-set-grid{display:none}
+  @media(max-width:600px){.mgr-set-grid{grid-template-columns:1fr}}
+  .mgr-reminder{font-size:13px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:16px}
+  .mgr-reminder b{color:var(--ink)}
+  .mgr-edit{background:none;border:0;color:var(--accent);font:inherit;font-weight:700;cursor:pointer;padding:0 2px}
+  .mgr-edit:hover{text-decoration:underline}
+
   /* группы — каждая со своим оттенком */
   .group-crm,.group-agents,.group-other,.group-vibe{
     border-radius:16px;padding:16px 16px 6px;margin-bottom:16px;border:1px solid var(--line)}
@@ -576,7 +596,7 @@ const scenarios = [
     vibe:true,
     title:"VibeCode и BitrixGPT",
     sub:"Сотрудники упрощают и автоматизируют свою работу. Часть работает в чате с нейросетью, часть создаёт приложения и повышает личную эффективность и скорость бизнес-процессов компании.",
-    link:"https://helpdesk.bitrix24.ru/open/28505406/",
+    link:"https://vibecode.bitrix24.tech/quickstart",
     role:"Все сотрудники", effect:["fot"],
     fields:[
       {k:"emp",   label:"Всего сотрудников",  def:10,     suf:"чел.", src:"empCount"},
@@ -1020,6 +1040,29 @@ function collectCompany(){
   return out;
 }
 
+/* ---------- Данные менеджера (serv): дефолт + сохранение в localStorage ---------- */
+const MANAGER_DEFAULT = {
+  name:     "Имя Фамилия",
+  role:     "Менеджер по внедрению BitrixGPT",
+  company:  "Ваша компания-интегратор",
+  phone:    "+7 (900) 000-00-00",
+  email:    "manager@example.ru",
+  telegram: "@your_telegram",
+  qrLink:   "https://t.me/your_telegram"
+};
+const MGR_LS_KEY = "bitrixgpt_manager_v1";
+function mgrLoad(){ try{ return JSON.parse(localStorage.getItem(MGR_LS_KEY)) || {}; }catch(e){ return {}; } }
+function mgrSave(o){ try{ localStorage.setItem(MGR_LS_KEY, JSON.stringify(o)); }catch(e){} }
+// Значения менеджера для отчёта: если что-то введено — берём только введённое (пустые поля скрываются);
+// если не введено ничего — показываем пример по умолчанию. MANAGER_DEFAULT в полях — только placeholder.
+function getManager(){
+  const o = mgrLoad();
+  const base = (o && Object.keys(o).length) ? o : MANAGER_DEFAULT;
+  const out = {};
+  Object.keys(MANAGER_DEFAULT).forEach(k=>{ out[k] = (base[k] != null) ? base[k] : ""; });
+  return out;
+}
+
 function buildReportHtml(tariff, company, isBox){
   const {items, totalFot, totalRev, totalPot, totalInt, groupEcon} = collectResults();
   const comp = collectCompany();
@@ -1027,6 +1070,8 @@ function buildReportHtml(tariff, company, isBox){
   const pot = totalPot + totalRev, potYear = pot*12;  // потенциал роста — отдельно, в окупаемость НЕ входит
   const onlyPot = econ<=0 && pot>0;                   // выбраны только повторные продажи — потенциал становится главным
   const dateStr = new Date().toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"});
+  // домен-источник: serv → partner.bitrixgpt.online, calc → bitrixgpt.online
+  const SITE = (typeof integratorCost === "function") ? "partner.bitrixgpt.online" : "bitrixgpt.online";
   const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const companyLine = company ? "<div class='co'>"+esc(company)+"</div>" : "";
   const special = (tariff.variant==="free" || tariff.variant==="none");
@@ -1254,19 +1299,8 @@ function buildReportHtml(tariff, company, isBox){
   //    calc → самоподключение + заявка;  serv → карточка менеджера (apply_integrator.py меняет флаг).
   const CTA_VARIANT = "calc";   /* ← apply_integrator.py заменяет на "serv" для calc-serv */
 
-  // ================================================================
-  //  ДАННЫЕ МЕНЕДЖЕРА (для serv-версии) — ВПИШИТЕ СВОИ.
-  //  Показываются в CTA-блоке отчёта; qrLink кодируется в QR-код.
-  // ================================================================
-  const MANAGER = {
-    name:     "Имя Фамилия",                        // ваше имя
-    role:     "Менеджер по внедрению BitrixGPT",     // должность
-    company:  "Ваша компания-интегратор",            // название компании (можно "")
-    phone:    "+7 (900) 000-00-00",                  // телефон (можно "")
-    email:    "manager@example.ru",                  // e-mail (можно "")
-    telegram: "@your_telegram",                      // Telegram (можно "")
-    qrLink:   "https://t.me/your_telegram"           // ссылка для QR: t.me / wa.me / сайт
-  };
+  // Данные менеджера для serv-версии: блок «Ваши контакты» (localStorage) → дефолт MANAGER_DEFAULT.
+  const MANAGER = getManager();
 
   const ctaBlock = (function(){
     if(CTA_VARIANT === "serv"){
@@ -1406,6 +1440,7 @@ function buildReportHtml(tariff, company, isBox){
     + ".trow.total{background:var(--panel);font-weight:800;color:var(--ink)}.trow.total .tv{color:var(--orange)}"
     + ".rec{margin-top:11px;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 15px;font-size:9pt;color:var(--muted);break-inside:avoid}"
     + ".ft{margin-top:16px;color:#555;font-size:8pt;border-top:1px solid var(--line);padding-top:11px;line-height:1.55}"
+    + ".ft-site{margin-top:8px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8.5pt;letter-spacing:.03em;color:var(--blue)}"
     // CTA — дальнейшие шаги
     + ".cta-sec{break-inside:avoid}"
     + ".cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}"
@@ -1471,8 +1506,9 @@ function buildReportHtml(tariff, company, isBox){
     + ctaBlock
     // мелкий шрифт — в самом низу
     + "<div class='ft'>Расчёт носит оценочный характер. Налоговая модель упрощённая (оклад на руки × 1,4); стоимость часа = оклад × 1,4 ÷ 176. Цены тарифов Bitrix24 — со скидкой при оплате за год; подписка BitrixGPT — при оплате за год.</div>"
+    + "<div class='ft-site'>Рассчитано на "+SITE+"</div>"
     + "</div>"
-    + "<div class='runfoot'><span>BitrixGPT · Экономический эффект</span><span>"+dateStr+"</span></div>"
+    + "<div class='runfoot'><span>BitrixGPT · Экономический эффект</span><span>"+dateStr+" · "+SITE+"</span></div>"
     + "</body></html>";
 }
 
@@ -1635,6 +1671,65 @@ document.getElementById("modal-ok").addEventListener("click", ()=>{
   modal.hidden = true;
   openReport(list.find(t=>t.id===checked.value), company, isBox);
 });
+
+/* ---------- Контакты менеджера (только serv): блок «Ваши контакты» + напоминание в модалке ---------- */
+if(typeof integratorCost === "function"){
+  const MGR_FIELDS = [
+    ["name","Имя и фамилия"], ["role","Должность"], ["company","Компания"],
+    ["phone","Телефон"], ["email","E-mail"], ["telegram","Telegram"],
+    ["qrLink","Ссылка для QR (t.me / wa.me / сайт)"]
+  ];
+  const saved = mgrLoad();
+
+  // блок настроек после «Данные о компании»
+  const box = document.createElement("div");
+  box.className = "mgr-set"; box.id = "mgr-set";
+  box.innerHTML = "<div class='mgr-set-head'>"
+    + "<div class='mgr-set-title'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21a8 8 0 1 0-16 0'/><circle cx='12' cy='7' r='4'/></svg>Ваши контакты <span>(в отчёт)</span></div>"
+    + "<button type='button' class='mgr-set-toggle' id='mgr-toggle'>Свернуть</button></div>"
+    + "<div class='mgr-set-sub'>Заполните один раз — данные попадут в блок «Ваш менеджер» в отчёте и в QR-код. Сохраняются в этом браузере.</div>"
+    + "<div class='mgr-set-grid' id='mgr-grid'></div>";
+  const companyEl = document.getElementById("company");
+  companyEl.parentNode.insertBefore(box, companyEl.nextSibling);
+
+  // напоминание в модалке (создаём заранее, чтобы на него могли ссылаться обработчики полей)
+  const rem = document.createElement("div");
+  rem.className = "mgr-reminder";
+  rem.innerHTML = "Контакты в отчёте: <b class='mgr-rem-name'></b> <button type='button' class='mgr-edit'>изменить</button>";
+  const msub = modal.querySelector(".msub");
+  if(msub && msub.parentNode) msub.parentNode.insertBefore(rem, msub.nextSibling);
+  const updateReminder = ()=>{ const s=mgrLoad(); rem.querySelector(".mgr-rem-name").textContent = (s.name && s.name.trim()) ? s.name : "не заполнены"; };
+
+  // поля (предзаполнены эффективными значениями; сохранение по вводу)
+  const grid = box.querySelector("#mgr-grid");
+  MGR_FIELDS.forEach(f=>{
+    const fld = document.createElement("div"); fld.className = "mgr-fld";
+    const lab = document.createElement("label"); lab.textContent = f[1];
+    const inp = document.createElement("input"); inp.type = "text"; inp.dataset.mgr = f[0];
+    inp.value = (saved[f[0]] != null) ? String(saved[f[0]]) : "";   // пусто → показывается placeholder-пример
+    inp.placeholder = MANAGER_DEFAULT[f[0]] || "";
+    inp.addEventListener("input", ()=>{ const o = mgrLoad(); o[f[0]] = inp.value; mgrSave(o); updateReminder(); });
+    fld.appendChild(lab); fld.appendChild(inp); grid.appendChild(fld);
+  });
+
+  // сворачивание блока
+  document.getElementById("mgr-toggle").addEventListener("click", ()=>{
+    const collapsed = box.classList.toggle("collapsed");
+    document.getElementById("mgr-toggle").textContent = collapsed ? "Развернуть" : "Свернуть";
+  });
+
+  // «изменить» из модалки → закрыть модалку и открыть блок
+  rem.querySelector(".mgr-edit").addEventListener("click", ()=>{
+    modal.hidden = true;
+    box.classList.remove("collapsed");
+    document.getElementById("mgr-toggle").textContent = "Свернуть";
+    box.scrollIntoView({behavior:"smooth", block:"center"});
+    const first = box.querySelector("input[data-mgr]"); if(first) first.focus();
+  });
+
+  updateReminder();
+  document.getElementById("dl-btn").addEventListener("click", updateReminder);
+}
 
 /* ---------- Пояснения «как считается» (всплывающее окно) ---------- */
 const INFO = {

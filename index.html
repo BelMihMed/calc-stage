@@ -1028,6 +1028,7 @@ scenarios.forEach((sc, idx)=>{
     if(e.target!==chk){ chk.checked = !chk.checked; }
     state[sc.id].selected = chk.checked;
     card.classList.toggle("active", chk.checked);
+    sessBlock(sc.title, chk.checked);
     recompute();
   });
 
@@ -1037,6 +1038,7 @@ scenarios.forEach((sc, idx)=>{
       const n = onNumInput(inp);
       state[sc.id].dirty[inp.dataset.k] = true;
       state[sc.id].values[inp.dataset.k] = inp.dataset.pct ? n/100 : n;  // % -> доля
+      sessField(sc.id, inp.dataset.k);
       recompute();
     });
   });
@@ -1061,6 +1063,7 @@ function addSegment(sc){
   const vals = {};
   sc.fields.forEach(f=> vals[f.k] = f.def);
   state[sc.id].segments.push(vals);
+  SESS.segments++; sessTouch();
   const number = state[sc.id].segments.length + 1;   // сегмент 1 — основной
   const block = document.createElement("div");
   block.className = "segment";
@@ -1128,6 +1131,7 @@ document.querySelectorAll(".comp-in").forEach(inp=>{
     inp.classList.remove("prefilled");   // ручной ввод — стандартный цвет
     onNumInput(inp);
     applyCompany(inp);
+    sessComp(inp.dataset.comp);
     recompute();
   });
 });
@@ -1204,6 +1208,7 @@ function recompute(){
     resEl.innerHTML = rows;
   });
 
+  sessEcon(totalFot);   // пик экономии на экране — виден даже если отчёт не формировали
   renderSummary(totalFot, totalRev, totalPot, anySelected, showQual, totalInt);
 
   // обновление панели навигации
@@ -1862,6 +1867,7 @@ function logReport(tariff, companyName, isBox){ sendLog(buildLogRecord(tariff, c
 
 // Клик «Подробнее» по лендингу → вкладка «Лендинги»
 function logLanding(url, title){
+  SESS.landings.add(url); sessTouch();
   sendLog({
     type:     "landing",
     ts:       new Date().toISOString(),
@@ -1874,6 +1880,66 @@ function logLanding(url, title){
   });
 }
 
+/* ---------- Журнал сессий: что настраивают, даже если отчёт не сформировали ----------
+   Одна сессия = один заход. Снимок уходит при уходе со страницы (sendBeacon переживает
+   закрытие вкладки) и по таймеру-страховке. Приёмник только ДОБАВЛЯЕТ строки — дашборд
+   группирует по sessionId и берёт последний снимок. Так ничего не теряется и не тормозит. */
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v===null ? d : v; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+const rndId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
+const SESS = (function(){
+  let vid = lsGet("bgpt_vid", "");
+  if(!vid){ vid = rndId(); lsSet("bgpt_vid", vid); }          // аноним-ID браузера (не персональные данные)
+  const visits = (parseInt(lsGet("bgpt_visits", "0"), 10) || 0) + 1;
+  lsSet("bgpt_visits", String(visits));
+  return { visitorId: vid, sessionId: rndId(), visitNo: visits,
+    start: Date.now(), lastAct: Date.now(),
+    fields: new Set(), compFields: new Set(), blocks: new Set(), infos: new Set(), landings: new Set(),
+    segments: 0, edits: 0, maxEconYear: 0,
+    report: false, tariff: "", deploy: "",
+    changed: false, sent: 0 };
+})();
+
+function sessTouch(){ SESS.lastAct = Date.now(); SESS.changed = true; }
+function sessField(scId, key){ SESS.fields.add(scId + "." + key); SESS.edits++; sessTouch(); }
+function sessComp(key){ SESS.compFields.add(key); SESS.edits++; sessTouch(); }
+function sessBlock(title, on){ if(on) SESS.blocks.add(title); sessTouch(); }
+function sessInfo(key){ SESS.infos.add(String(key)); sessTouch(); }
+function sessEcon(fotMonth){ const y = Math.round((fotMonth||0)*12); if(y > SESS.maxEconYear) SESS.maxEconYear = y; }
+
+function sessRecord(reason){
+  return {
+    type:"session", reason:reason,
+    sessionId:SESS.sessionId, visitorId:SESS.visitorId, visitNo:SESS.visitNo,
+    ts:new Date(SESS.start).toISOString(),
+    durationSec:Math.round((SESS.lastAct - SESS.start)/1000),
+    version:(typeof integratorCost==="function") ? "calc-serv" : "calc",
+    iframe:inIframe(), host:inIframe() ? (document.referrer || "") : location.href,
+    device:/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "mobile" : "desktop",
+    blocks:[...SESS.blocks].join(" | "),        blocksCount:SESS.blocks.size,
+    fields:[...SESS.fields].join(" | "),        fieldsCount:SESS.fields.size,
+    compFields:[...SESS.compFields].join(" | "),
+    edits:SESS.edits, segments:SESS.segments,
+    infos:[...SESS.infos].join(" | "), landings:[...SESS.landings].join(" | "),
+    maxEconYear:SESS.maxEconYear,
+    reportGenerated:SESS.report, tariff:SESS.tariff, deploy:SESS.deploy,
+  };
+}
+
+function sendSession(reason){
+  if(!LOG_ENDPOINT) return;
+  const dwell = (Date.now() - SESS.start)/1000;
+  if(!SESS.changed && dwell < 5) return;      // отсекаем ботов и мгновенные закрытия
+  if(!SESS.changed && SESS.sent > 0) return;  // с прошлого снимка ничего не изменилось
+  SESS.changed = false; SESS.sent++;
+  sendLog(sessRecord(reason));
+}
+
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") sendSession("hidden"); });
+window.addEventListener("pagehide", ()=> sendSession("pagehide"));
+setInterval(()=> sendSession("timer"), 120000);   // страховка для долгих сессий
+
 function openReport(tariff, company, isBox){
   const html = buildReportHtml(tariff, company, isBox);
   const doc = reportFrame.contentDocument || reportFrame.contentWindow.document;
@@ -1882,6 +1948,10 @@ function openReport(tariff, company, isBox){
   document.body.style.overflow = "hidden";
   reportOverlay.querySelector(".report-stage").scrollTop = 0;
   logReport(tariff, company, isBox);   // фиксируем состав печатного отчёта (+ облако/коробка)
+  SESS.report = true;                                        // сессия дошла до отчёта
+  SESS.tariff = tariff ? (tariff.name || tariff.id || "") : "";
+  SESS.deploy = isBox ? "box" : "cloud";
+  sessTouch(); sendSession("report");                        // снимок сразу, не дожидаясь ухода
 }
 
 // выбор формата и текущего тарифа Битрикс24 — в блоке «Данные о компании»
@@ -2043,6 +2113,7 @@ function openInfo(key){
   const t = document.getElementById("info-title");
   const x = document.getElementById("info-text");
   const k = String(key);
+  sessInfo(k);   // где просят пояснения — зоны трения
   if(k==="summary"){ t.textContent = "Как считается итоговая экономика"; x.textContent = SUMMARY_INFO; }
   // @int:info-branch
   else if(k.startsWith("real:")){

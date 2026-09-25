@@ -206,20 +206,160 @@
   }
   /* @core:end */
 
-  /* ---------- Коворк: продуктовые стили (каркас T5; карточки задач, пресеты и навбар — T8, панель итога — T10) ---------- */
+  /* ---------- Коворк: продуктовые стили (T8 — интерфейс задач; T10 — панель итога) ---------- */
+  :root{
+    --task-boss-ink:#5b47d6;  --task-boss-bg:#f1eeff;
+    --task-sales-ink:#0057cc; --task-sales-bg:#e6f0ff;
+    --task-mkt-ink:#0e6e5c;   --task-mkt-bg:#ecf7f3;
+  }
   .layout{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
   @media(min-width:900px){
     .layout{grid-template-columns:minmax(0,1fr) 340px}
-    .summary-panel{position:sticky;top:calc(12px + env(safe-area-inset-top,0px))}
+    .summary-panel{position:sticky;top:calc(76px + env(safe-area-inset-top,0px))}
   }
   .groups{min-width:0}
-  .summary-panel{color:#fff;border:0;border-radius:26px;padding:26px 28px;
+  .navbar{top:calc(10px + env(safe-area-inset-top,0px))}
+  .navbar .chip[data-go="sec-boss"]{color:var(--task-boss-ink);background:var(--task-boss-bg)}
+  .navbar .chip[data-go="sec-sales"]{color:var(--task-sales-ink);background:var(--task-sales-bg)}
+  .navbar .chip[data-go="sec-mkt"]{color:var(--task-mkt-ink);background:var(--task-mkt-bg)}
+  .navbar .chip.go-summary{color:#fff;background:linear-gradient(95deg,var(--cw-accent),hsl(205,78%,48%))}
+  .navbar .reset{font:inherit;font-size:12.5px;font-weight:700;color:var(--muted);background:none;border:0;cursor:pointer;padding:6px 8px;border-radius:10px}
+  .navbar .reset:hover{color:var(--ink);background:var(--panel)}
+  .group-boss,.group-sales,.group-mkt,.summary-panel{scroll-margin-top:84px}
+
+  /* пресеты «Кто вы?» */
+  .presets{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px}
+  .presets .lbl{font-size:13px;font-weight:700;color:var(--muted);margin-right:4px}
+  .presets .pchip{font:inherit;font-size:13.5px;font-weight:700;color:var(--cw-accent-ink);background:var(--cw-accent-soft);
+    border:0;border-radius:20px;padding:9px 16px;cursor:pointer;transition:background-color .15s,color .15s}
+  .presets .pchip:hover{filter:brightness(.97)}
+  .presets .pchip[aria-pressed="true"]{color:#fff;background:var(--cw-accent)}
+
+  /* ставка часа рядом с окладом */
+  .rate-hint{font-size:12px;color:var(--faint);margin-top:5px;font-family:'JetBrains Mono',monospace}
+
+  /* группы задач */
+  .group{border-radius:24px;padding:20px 20px 10px;margin-bottom:18px}
+  .group-boss{background:var(--task-boss-bg)} .group-sales{background:var(--task-sales-bg)} .group-mkt{background:var(--task-mkt-bg)}
+  .group-label{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:2px 6px 16px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.12em}
+  .group-label small{font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)}
+  .group-boss .group-label{color:var(--task-boss-ink)} .group-sales .group-label{color:var(--task-sales-ink)} .group-mkt .group-label{color:var(--task-mkt-ink)}
+  .group-boss .chk:checked{background:var(--task-boss);border-color:var(--task-boss)}
+  .group-sales .chk:checked{background:var(--task-sales);border-color:var(--task-sales)}
+  .group-mkt .chk:checked{background:var(--task-mkt);border-color:var(--task-mkt)}
+  .group-boss .card.active{box-shadow:0 0 0 2px var(--task-boss),0 12px 30px rgba(123,97,255,.14)}
+  .group-sales .card.active{box-shadow:0 0 0 2px var(--task-sales),0 12px 30px rgba(0,109,255,.14)}
+  .group-mkt .card.active{box-shadow:0 0 0 2px var(--task-mkt),0 12px 30px rgba(18,134,111,.14)}
+
+  /* карточка задачи */
+  .card{background:#fff;border:0;border-radius:var(--radius);margin-bottom:12px;overflow:hidden;box-shadow:var(--card-shadow);transition:box-shadow .18s}
+  .card:last-child{margin-bottom:0}
+  .card-head{display:flex;align-items:flex-start;gap:14px;padding:18px 22px;cursor:pointer;user-select:none;transition:background .15s}
+  .card-head:hover{background:#fafafc}
+  .task-chk{border-radius:50%}
+  .card-title{flex:1;min-width:0}
+  .card-title .t{display:block;font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .card-title .s{display:block;font-size:13.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .pill,.flag{font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;letter-spacing:.02em;white-space:nowrap}
+  .pill.hand{background:var(--panel);color:var(--muted)}
+  .pill.ai{background:var(--cw-accent-soft);color:var(--cw-accent-ink)}
+  .flag.code{background:#f1eeff;color:#5b47d6}
+  .flag.est{background:#fdf6ea;color:#a9701f}
+  .card-body{padding:0 22px 22px;border-top:1px solid #f2f2f5}
+  .card-body[hidden]{display:none}
+  .in .unit-sel{border:0;outline:0;background:transparent;font:inherit;font-size:14px;color:var(--muted);padding:10px 8px 10px 4px;cursor:pointer}
+  .field.freq .in input{flex:0 0 64px;width:64px;padding-right:4px}
+  .result{margin-top:16px;background:var(--panel);border:0;border-radius:14px;padding:13px 18px}
+  .res-head{display:flex;justify-content:flex-end;margin:-2px 0 2px}
+  .res-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:5px 0;font-size:15px}
+  .res-row .lbl{color:var(--muted)}
+  .res-row .val{font-weight:800;font-variant-numeric:tabular-nums;color:var(--cw-accent-ink);text-align:right}
+  .res-row .val small{font-weight:600;color:var(--muted);font-size:12.5px}
+  .real-row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);border-top:1px dashed #dcdce2;margin-top:6px;padding:8px 0 1px}
+  .real-row b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+  .real-row .info-btn{padding:0 1px} .real-row .info-btn svg{width:15px;height:15px}
+  .prompt{margin:14px 0 0;font-size:13.5px;line-height:1.55;color:var(--ink);background:var(--cw-accent-soft);border-radius:12px;padding:11px 14px}
+  .prompt b{display:block;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--cw-accent-ink);margin-bottom:4px}
+
+  /* панель итога (T10) */
+  .summary-panel{color:#fff;border:0;border-radius:26px;padding:24px 24px 22px;
     background:linear-gradient(135deg,hsl(258,52%,22%),hsl(226,55%,25%),hsl(190,52%,23%));
     box-shadow:0 20px 54px rgba(30,24,70,.28)}
-  .summary-panel h2{margin:0 0 12px;font-family:Unbounded,Manrope,sans-serif;font-weight:800;font-size:18px;color:#fff}
+  .summary-panel h2{margin:0 0 6px;font-family:Unbounded,Manrope,sans-serif;font-weight:800;font-size:17px;color:#fff}
+  .summary-panel h3{margin:18px 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.55);font-weight:700}
   .summary-panel .empty{color:rgba(255,255,255,.82);font-size:14.5px;line-height:1.55}
-  .stage-note{background:var(--cw-accent-soft);color:var(--cw-accent-ink);border-radius:14px;padding:13px 18px;font-size:14px;line-height:1.5}
-  .stage-note b{font-weight:800}
+  .sp-hours{font-family:Unbounded,Manrope,sans-serif;font-weight:800;font-size:clamp(30px,5vw,40px);line-height:1.1;letter-spacing:-.01em;
+    background:linear-gradient(90deg,#c7b8ff,#86ecd6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sp-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,.7);line-height:1.5}
+  .sp-sub b{color:#fff;font-weight:700}
+  .sp-block{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14)}
+  .tiers-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .tiers-head .h{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.55);font-weight:700}
+  .est-note{font-size:11px;font-weight:700;color:#ffcf9e;background:rgba(255,207,158,.14);border-radius:20px;padding:3px 9px}
+  .tiers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .tier{position:relative;border:1.5px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;border-radius:14px;padding:10px 6px 9px;
+    font:inherit;cursor:pointer;text-align:center;display:flex;flex-direction:column;gap:3px;min-width:0;transition:background-color .15s,border-color .15s}
+  .tier:hover{background:rgba(255,255,255,.11)}
+  .tier[aria-checked="true"]{background:#fff;color:var(--ink);border-color:#fff}
+  .tier .tn{font-size:12px;font-weight:800;letter-spacing:.02em}
+  .tier .tp{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tier .tv{font-size:10.5px;color:rgba(255,255,255,.6);white-space:nowrap}
+  .tier[aria-checked="true"] .tv{color:var(--muted)}
+  .tier .rec{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+    color:#0e6e5c;background:#8ef0c6;border-radius:20px;padding:2px 7px;white-space:nowrap}
+  .tier::before{content:"";position:absolute;left:10px;right:10px;top:0;height:3px;border-radius:0 0 3px 3px;background:var(--tier-c,transparent)}
+  .why{margin:10px 0 0;font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.78)}
+  .linkbtn{background:none;border:0;padding:0;font:inherit;font-size:12.5px;font-weight:700;color:#8ef0c6;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .linkbtn:hover{color:#fff}
+  .sp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;font-size:13px;color:rgba(255,255,255,.78)}
+  .period{display:inline-flex;gap:3px;background:rgba(255,255,255,.08);border-radius:12px;padding:3px}
+  .period button{font:inherit;font-size:11.5px;font-weight:700;color:rgba(255,255,255,.75);background:transparent;border:0;border-radius:9px;padding:6px 7px;cursor:pointer;white-space:nowrap}
+  .period button[aria-pressed="true"]{background:#fff;color:var(--ink)}
+  .seats-in{display:inline-flex;align-items:center;background:rgba(255,255,255,.08);border-radius:12px;border:1.5px solid transparent}
+  .seats-in:focus-within{border-color:#8ef0c6;background:rgba(255,255,255,.12)}
+  .seats-in input{width:64px;border:0;outline:0;background:transparent;color:#fff;font:inherit;font-size:14px;font-weight:700;padding:7px 4px 7px 12px;text-align:right;font-variant-numeric:tabular-nums}
+  .seats-in .suf{font-size:12px;color:rgba(255,255,255,.6);padding:0 12px 0 4px;font-family:'JetBrains Mono',monospace}
+  .m-grid{display:grid;grid-template-columns:1fr auto auto;gap:8px 16px;align-items:baseline}
+  .m-grid .h{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.5);font-weight:700;text-align:right}
+  .m-grid .lbl{font-size:13.5px;color:rgba(255,255,255,.82)}
+  .m-grid .num{font-size:14px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .m-grid .cost .lbl{color:rgba(255,255,255,.7)} .m-grid .cost .num,.m-grid .num.cost{color:#ffcf9e;font-weight:600}
+  .m-grid .net .lbl{font-weight:800;color:#fff}
+  .m-grid .net .num{font-family:Unbounded,Manrope,sans-serif;font-weight:800;font-size:16px;background:linear-gradient(90deg,#c7b8ff,#86ecd6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .m-grid .net.negative .num{background:none;-webkit-background-clip:initial;background-clip:initial;color:#ffcf9e}
+  .m-line{grid-column:1/-1;height:1px;background:rgba(255,255,255,.14);margin:2px 0}
+  .verdict{margin-top:14px;display:flex;align-items:flex-start;gap:9px;background:rgba(120,230,190,.16);border:1px solid rgba(160,240,205,.38);border-radius:14px;padding:11px 14px;font-size:13.5px;line-height:1.5;color:#eafff7}
+  .verdict svg{width:18px;height:18px;color:#8ef0c6;flex:none;margin-top:1px}
+  .verdict.negative{background:rgba(255,207,158,.12);border-color:rgba(255,207,158,.35);color:#fff3e3}
+  .verdict.negative svg{color:#ffcf9e}
+  .bars{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .bars li{display:grid;gap:4px}
+  .bars .lab{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:rgba(255,255,255,.85)}
+  .bars .lab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bars .lab b{color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bars .track{height:6px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden}
+  .bars .fill{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#c7b8ff,#86ecd6)}
+  .sp-actions{display:grid;gap:8px;margin-top:18px}
+  .dl-btn{width:100%;padding:13px;border:0;border-radius:14px;cursor:pointer;font-family:Manrope,sans-serif;font-size:15px;font-weight:800;color:hsl(232,55%,40%);background:#fff;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .15s}
+  .dl-btn svg{width:18px;height:18px}
+  .dl-btn:hover:not(:disabled){background:#eef1ff}
+  .dl-btn:disabled{opacity:.5;cursor:not-allowed}
+  .copy-btn{width:100%;padding:11px;border:1px solid rgba(255,255,255,.28);border-radius:14px;cursor:pointer;font-family:Manrope,sans-serif;font-size:14px;font-weight:700;color:#fff;background:rgba(255,255,255,.06);
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .15s}
+  .copy-btn:hover:not(:disabled){background:rgba(255,255,255,.14)}
+  .copy-btn:disabled{opacity:.5;cursor:not-allowed}
+  .copy-btn svg{width:16px;height:16px}
+  .method-note{margin-top:28px;background:var(--panel);border-radius:22px;padding:20px 24px}
+  .method-note h2{margin:0 0 10px;font-family:Unbounded,Manrope,sans-serif;font-weight:800;font-size:17px}
+  .method-note p{margin:0 0 10px;font-size:14px;line-height:1.6;color:var(--muted)} .method-note p:last-child{margin-bottom:0}
+  .rm-sum .trow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px;color:var(--muted)}
+  .rm-sum .trow b{color:var(--ink);text-align:right} .rm-sum small{font-weight:600;color:var(--muted)}
+  .copied{margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:#8ef0c6}
+  .copy-fallback{margin-top:10px;width:100%;min-height:140px;border:1px solid rgba(255,255,255,.28);border-radius:12px;background:rgba(0,0,0,.25);color:#fff;font:12.5px/1.5 'JetBrains Mono',monospace;padding:10px}
+  .sp-note{margin:12px 0 0;font-size:12px;line-height:1.5;color:rgba(255,255,255,.6)}
+  @media(max-width:420px){.tiers{grid-template-columns:repeat(2,minmax(0,1fr))}.m-grid{grid-template-columns:1fr auto;gap:6px 12px}.m-grid .h.year,.m-grid .num.year{display:none}}
 </style>
 </head>
 <body>
@@ -231,7 +371,7 @@
     <p class="lede">Отметьте задачи, которые вы делаете руками, и посмотрите, сколько часов и денег в месяц освобождает Коворк/Код. Считаем по той же методике, что и калькулятор BitrixGPT: с коэффициентом реализуемости и датированными ценами.</p>
   </div>
 
-  <!-- пресеты «Кто вы?» (T8): чипы «Я руководитель», «Я в продажах», «Я в маркетинге», «Считаю для команды» -->
+  <div class="presets" id="presets" role="group" aria-label="Кто вы?"></div>
 
   <div class="company" id="company">
     <!-- @core:company-html -->
@@ -258,18 +398,69 @@
     <!-- @core:end -->
   </div>
 
-  <!-- липкий навбар с чипами групп и мини-итогом (T8) -->
+  <div class="navbar">
+    <div class="navchips">
+      <button type="button" class="chip" data-go="sec-boss">Руководитель</button>
+      <button type="button" class="chip" data-go="sec-sales">Продажи</button>
+      <button type="button" class="chip" data-go="sec-mkt">Маркетинг</button>
+      <button type="button" class="chip go-summary" data-go="summary">Итог ↓</button>
+    </div>
+    <div class="mini">
+      <span class="cnt" id="nav-count">Ничего не выбрано</span>
+      <span id="nav-total"></span>
+      <button type="button" class="reset" id="reset-btn" title="Вернуть типовые значения и пресет по умолчанию">Сбросить</button>
+    </div>
+  </div>
 
   <div class="layout">
-    <div class="groups" id="groups">
-      <div class="stage-note"><b>Страница собирается.</b> Список задач, пресеты и подбор тарифа появятся на следующих этапах разработки. Уже работает общее ядро: данные о компании, ставка часа и методика расчёта.</div>
-    </div>
+    <div class="groups" id="groups"></div>
     <aside class="summary-panel" id="summary" aria-live="polite">
       <h2>Вы освободите в месяц</h2>
-      <div id="summary-body"><p class="empty">Отметьте задачи, которые делаете руками, и калькулятор посчитает часы, деньги и подходящий тариф.</p></div>
+      <div class="sp-hours" id="sp-hours">0 ч</div>
+      <div class="sp-sub" id="sp-sub">Отметьте задачи, которые делаете руками, — калькулятор посчитает часы, деньги и подходящий тариф.</div>
+
+      <div class="sp-block">
+        <div class="tiers-head"><span class="h">Тариф Коворк/Код</span><span class="est-note" id="tier-est" title="Пороги тарифов не подтверждены продуктом">ориентир</span></div>
+        <div class="tiers" id="tiers" role="radiogroup" aria-label="Тариф Коворк/Код"></div>
+        <p class="why" id="tier-why"></p>
+        <button type="button" class="linkbtn" id="tier-auto" hidden>Подобрать по задачам</button>
+        <div class="sp-row"><span>Оплата</span><div class="period" id="period" role="group" aria-label="Срок оплаты"></div></div>
+        <div class="sp-row"><label for="seats">Подписок <span id="seats-hint"></span></label>
+          <span><span class="seats-in"><input id="seats" type="text" inputmode="numeric" value="1" aria-describedby="seats-hint"><span class="suf">шт.</span></span>
+          <button type="button" class="linkbtn" id="seats-auto" hidden style="margin-left:8px">сбросить</button></span></div>
+      </div>
+
+      <div class="sp-block">
+        <div class="m-grid" id="money"></div>
+        <div class="verdict" id="verdict" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span id="verdict-text"></span></div>
+      </div>
+
+      <div class="sp-block" id="top-block" hidden>
+        <h3 style="margin-top:0">Где вы сэкономите больше всего</h3>
+        <ul class="bars" id="bars"></ul>
+      </div>
+
+      <div class="sp-actions">
+        <button type="button" class="dl-btn" id="dl-btn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Скачать результат (PDF)
+        </button>
+        <button type="button" class="copy-btn" id="copy-btn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Скопировать расчёт
+        </button>
+      </div>
+      <div class="copied" id="copied" hidden role="status">Расчёт скопирован</div>
+      <textarea id="copy-fallback" class="copy-fallback" hidden aria-label="Текст расчёта — скопируйте вручную" readonly></textarea>
+      <p class="sp-note">Покажите расчёт руководителю или коллегам: цифры считаются по вашим окладам и задачам, коэффициент реализуемости уже учтён.</p>
     </aside>
   </div>
 
+  <section class="method-note" id="method" aria-labelledby="method-title">
+    <h2 id="method-title">Как считается</h2>
+    <p>Для каждой задачи берём разницу между «сейчас» и «с Коворком» в минутах, умножаем на частоту в месяц и число людей — это освобождённые часы. Не всё освобождённое время превращается в результат: по исследованию NBER «Time Savings When Working from Home» (2023, 27 стран) в основную работу уходит около 40% сэкономленного времени. Поэтому у каждой задачи свой коэффициент реализуемости: крупные предсказуемые блоки времени реинвестируются лучше, осколки по 15 минут — хуже. Коэффициент показан под задачей и уже учтён во всех суммах.</p>
+    <p>Стоимость часа — оклад роли × 1,4 (налоги и взносы) ÷ 176 рабочих часов. Подписка считается в вайбах по ценам Битрикс24 с НДС и скидкой за срок оплаты. Чистая экономия первого года = стоимость освобождённого времени за 12 месяцев − подписка за 12 месяцев; окупаемость — во сколько рабочих дней месяца экономия покрывает подписку.</p>
+  </section>
   <div class="foot">Все суммы — в рублях, округление до целых. Налоговая модель упрощённая (оклад на руки × 1,4). Расчёт носит оценочный характер. <span id="price-date"></span></div>
 </div>
 <script>
@@ -571,9 +762,9 @@ const GROUPS = [
 // (автозаполнение поля «Сколько человек»). У маркетинга своего счётчика нет: empCount — это вся компания,
 // поэтому для роли emp поле c не автозаполняется, берётся оклад empSal.
 const ROLES = {
-  boss:  {sal:"ropSal", cnt:"ropCount", label:"руководителя"},
-  sales: {sal:"mgrSal", cnt:"mgrCount", label:"менеджера"},
-  emp:   {sal:"empSal", cnt:null,       label:"сотрудника"},
+  boss:  {sal:"ropSal", cnt:"ropCount", name:"руководитель", label:"руководителя"},   // label — родительный падеж для «час руководителя»
+  sales: {sal:"mgrSal", cnt:"mgrCount", name:"менеджер",     label:"менеджера"},
+  emp:   {sal:"empSal", cnt:null,       name:"сотрудник",    label:"сотрудника"},
 };
 const PERIOD_MULT  = {day:DAYS_MONTH, week:WEEKS_MONTH, month:1, quarter:1/3};   // сколько раз в месяц
 const PERIOD_LABEL = {day:"в день", week:"в неделю", month:"в месяц", quarter:"в квартал"};
@@ -617,7 +808,7 @@ const REAL_COWORK = {
   diff:  {k:0.45, why:"Сравнение документов — средние блоки по два часа пару раз в месяц: крупнее осколков, но появляются непредсказуемо, поэтому чуть выше базы."},
   land:  {k:0.70, why:"Лендинг в режиме Код убирает ожидание подрядчика как поток работы: не человек получает время обратно, а задача перестаёт существовать. Такой эффект реализуется лучше всего."},
 };
-const realOf = task => realCoef(REAL_COWORK, task.id);   // realCoef — из ядра (@core:method)
+const realOf = task => realCoef(REAL_COWORK, task.id);   // realCoef — из блока method ядра
 
 /* ---------- Пресеты «Кто вы?» (ТЗ §4.1): набор задач и множители c из сборки ---------- */
 const PRESETS = {
@@ -716,18 +907,691 @@ function describeTask(task, st, company){
 }
 // @cw:end
 
-/* ---------- Связка модели со страницей (интерфейс карточек — T8, панель итога — T10) ---------- */
+// @cw:pricing
+/* ---------- Цены и тарифы Коворк/Код (ТЗ §3.5): единый датированный конфиг по образцу PRICE_CONFIG ----------
+   Цены и множители объёма — с лендинга cowork.bitrix24.ru (25.09.2026), НДС и курс вайба — helpdesk/vibecode.
+   Пороги в задачах на подписку, правило Кода и скидки за период — из исходной сборки, продуктом не подтверждены:
+   пока thresholdsStatus = "estimate", в интерфейсе и PDF стоит подпись «ориентир» (см. COWORK-DATA.md). */
+const COWORK_PRICE_CONFIG = {
+  actualOn: "2026-09-25",
+  vat: VAT,                                   // из глоссария ядра: цена в вайбах без НДС, к оплате +22%
+  vibeRub: 1,                                 // 1 вайб = 1 ₽ без НДС
+  tiers: [
+    {id:"free",  name:"Free",  vibes:0,     maxRunsPerSeat:6,        note:"5% от объёма Pro", color:"var(--tier-free)"},
+    {id:"pro",   name:"Pro",   vibes:2000,  maxRunsPerSeat:100,      note:"базовый объём",    color:"var(--tier-pro)"},
+    {id:"max",   name:"Max",   vibes:10000, maxRunsPerSeat:400,      note:"×5 к Pro",         color:"var(--tier-max)"},
+    {id:"ultra", name:"Ultra", vibes:20000, maxRunsPerSeat:Infinity, note:"×10 к Pro",        color:"var(--tier-ultra)"},
+  ],
+  codeRule: { minTierIfAny:"pro", minTierIfRegular:"max", regularRunsPerMonth:2 },   // задачи Кода: не ниже Pro; регулярно (> 2 запусков/мес) — не ниже Max
+  periods: [ {months:1, discount:0}, {months:3, discount:0.05}, {months:6, discount:0.10}, {months:12, discount:0.20} ],
+  thresholdsStatus: "estimate",              // estimate | confirmed — снимает подпись «ориентир»
+  requires: "Для платных тарифов нужна подписка BitrixGPT + Маркетплейс и платный тариф Битрикс24.",
+};
+const tierById = id => COWORK_PRICE_CONFIG.tiers.find(t=>t.id===id) || null;
+const tierIndex = id => COWORK_PRICE_CONFIG.tiers.findIndex(t=>t.id===id);
+const periodByMonths = m => COWORK_PRICE_CONFIG.periods.find(p=>p.months===Number(m)) || COWORK_PRICE_CONFIG.periods[0];
+const thresholdsAreEstimate = () => COWORK_PRICE_CONFIG.thresholdsStatus !== "confirmed";
+
+/* ---------- Подбор подписок и тарифа (ТЗ §3.6) ---------- */
+// подписок по умолчанию — максимум «Сколько человек» среди выбранных задач, не меньше 1
+const autoSeats = maxC => Math.max(1, Math.round(num(maxC)));
+
+// runs — задач в месяц по всем людям, codeRuns — запусков задач Кода без множителя c (из computeAll)
+function recommendTier(runs, codeRuns, seats){
+  const cfg = COWORK_PRICE_CONFIG, tiers = cfg.tiers;
+  const perSeat = num(runs) / Math.max(1, num(seats));
+  let idx = tiers.findIndex(t => t.maxRunsPerSeat >= perSeat);
+  if(idx < 0) idx = tiers.length - 1;
+  let codeBump = null;                                   // "any" | "regular" — правило Кода подняло планку
+  if(num(codeRuns) > 0){
+    const regular = num(codeRuns) > cfg.codeRule.regularRunsPerMonth;
+    const minIdx = tierIndex(regular ? cfg.codeRule.minTierIfRegular : cfg.codeRule.minTierIfAny);
+    if(minIdx > idx){ idx = minIdx; codeBump = regular ? "regular" : "any"; }
+  }
+  return { tier: tiers[idx], perSeat, codeBump, runs: num(runs), codeRuns: num(codeRuns), seats: Math.max(1, num(seats)) };
+}
+
+// выбор пользователя поверх автоподбора: тариф вручную, период оплаты, число подписок (сброс возвращает автоподбор)
+const pricing = { tierSel:null, period:1, seatsManual:false, seats:1 };
+function resolveTariff(res){
+  const seats = pricing.seatsManual ? Math.max(1, Math.round(num(pricing.seats))) : autoSeats(res.maxC);
+  const rec = recommendTier(res.runs, res.codeRuns, seats);
+  const chosen = (pricing.tierSel && tierById(pricing.tierSel)) || rec.tier;
+  return { rec, chosen, seats, months: periodByMonths(pricing.period).months, manual: !!pricing.tierSel && chosen.id !== rec.tier.id };
+}
+
+/* ---------- Стоимость подписки (ТЗ §3.5): vibes × vibeRub × (1 − скидка) × (1 + НДС) × подписок ---------- */
+function subscriptionCost(tierId, months, seats){
+  const cfg = COWORK_PRICE_CONFIG, t = tierById(tierId) || cfg.tiers[0], p = periodByMonths(months);
+  const n = Math.max(1, Math.round(num(seats)));
+  const netOne = t.vibes * cfg.vibeRub * (1 - p.discount);          // ₽ без НДС за одну подписку в месяц
+  const grossMonth = netOne * (1 + cfg.vat) * n;
+  return { tier:t, period:p, seats:n, vibesMonth: t.vibes * (1 - p.discount) * n, netMonth: netOne * n, grossMonth, grossYear: grossMonth * 12 };
+}
+
+/* ---------- Финмодель (ТЗ §3.7): calculateEconomics ядра + окупаемость в рабочих днях ---------- */
+function coworkEconomics(totalFot, sub){
+  const fot = num(totalFot);
+  const econ = calculateEconomics(fot, sub.grossYear);            // чистая экономия 1-го года = ФОТ × 12 − подписка × 12
+  const perDay = fot / DAYS_MONTH;
+  return {
+    ...econ,
+    subscriptionMonth: sub.grossMonth, subscriptionYear: sub.grossYear,
+    netMonth: fot - sub.grossMonth,
+    paybackDays: fot > 0 && sub.grossMonth > 0 ? Math.ceil(sub.grossMonth / perDay) : 0,
+    ratio: sub.grossMonth > 0 ? fot / sub.grossMonth : (fot > 0 ? Infinity : 0),
+  };
+}
+
+/* ---------- Тексты подбора (из сборки) ---------- */
+function tierWhy(rec, chosenId){
+  const pr = Math.round(rec.perSeat), T = tierById;
+  const texts = {
+    free:  "Около " + pr + " задач в месяц на человека. Бесплатного тарифа хватит, чтобы познакомиться, но паузы будут частыми.",
+    pro:   "Около " + pr + " задач в месяц на человека — это ежедневная работа: отчёты к планёрке, аналитика по своему отделу. В плотные дни возможна пауза до сброса лимита.",
+    max:   "Около " + pr + " задач в месяц на человека — плотный поток: ежедневные отчёты, аналитика по всей воронке, приложения в Коде.",
+    ultra: "Больше " + pr + " задач в месяц на человека — работа без остановки: много задач параллельно, агенты в фоне, живые дашборды.",
+  };
+  if(!(rec.runs > 0)) return "Отметьте задачи, и калькулятор подскажет тариф.";
+  const base = texts[rec.tier.id];
+  if(chosenId && chosenId !== rec.tier.id){
+    return "Вы выбрали " + T(chosenId).name + ". По вашим задачам подходит " + rec.tier.name + ": " + base.charAt(0).toLowerCase() + base.slice(1);
+  }
+  return base + (rec.codeBump === "regular" ? " Приложения в Коде вы делаете регулярно, а это уровень Max."
+       : rec.codeBump === "any" ? " Есть задача в режиме Код — для неё нужен тариф не ниже Pro." : "");
+}
+function verdictText(res, econ){
+  if(!res.items.length) return "Отметьте задачи, которые делаете руками.";
+  if(econ.subscriptionMonth === 0) return "На бесплатном тарифе вся экономия ваша. Но его объём — 5% от Pro, поэтому для ежедневной работы он быстро закончится.";
+  if(econ.netMonth <= 0) return "Пока экономия меньше подписки. Добавьте задачи, которые повторяются каждый день или неделю.";
+  return "Экономия в " + (Math.round(econ.ratio * 10) / 10).toLocaleString("ru-RU") + " раза больше подписки: она окупается за первые "
+    + Math.max(1, econ.paybackDays) + " раб. дн. месяца.";
+}
+const priceDateText = () => "Цены актуальны на " + formatConfigDate(COWORK_PRICE_CONFIG.actualOn)
+  + (thresholdsAreEstimate() ? " Пороги тарифов — ориентир до подтверждения продуктом." : "");   // дата уже кончается на «г.»
+/* ---------- Текст расчёта для копирования (T12, ТЗ §5.2) ---------- */
+const PAGE_URL = "https://cowork.bitrixgpt.online/";
+function buildSummaryText(res, tariff, sub, econ, company, opts){
+  const o = opts || {};
+  const days = (Math.round(res.days*10)/10).toLocaleString("ru-RU");
+  const items = res.items.slice().sort((x,y)=>y.r.hours - x.r.hours);
+  const rates = Object.entries(ROLES).map(([id, r])=> r.name + " " + fmtMoney(costHour(num(company && company[r.sal]))) + "/ч").join(", ");
+  const period = periodByMonths(tariff.months);
+  const lines = [
+    "Расчёт выгоды Коворк/Код" + (o.companyName ? " — " + o.companyName : ""),
+    "",
+    "Задачи (часов в месяц с учётом реализуемости):",
+    ...items.map(it => "• " + it.task.n + ": " + fmtHours(it.r.hours) + " (освобождается " + fmtHours(it.r.rawHours) + ", коэффициент " + fmtPct(it.r.real) + ")"),
+    "",
+    "Освобождается: " + fmtHours(res.totalHours) + " в месяц (≈ " + days + " рабочих дней), без коэффициента — " + fmtHours(res.totalRawHours),
+    "Стоимость этого времени: " + fmtMoney(res.totalFot) + " в месяц. Ставка часа: " + rates,
+    "Тариф: " + tariff.chosen.name + (tariff.seats > 1 ? " × " + tariff.seats : "")
+      + (period.months > 1 ? ", оплата за " + period.months + " мес (скидка " + Math.round(period.discount*100) + "%)" : ", оплата помесячно")
+      + " — " + fmtMoney(sub.grossMonth) + " в месяц с НДС" + (tariff.manual ? " (по задачам подходит " + tariff.rec.tier.name + ")" : ""),
+    "Чистая экономия: " + fmtMoney(econ.netMonth) + " в месяц, " + fmtMoney(econ.netFirstYear) + " за первый год"
+      + (econ.paybackDays > 0 ? ". Подписка окупается за " + econ.paybackDays + " раб. дн." : ""),
+    "",
+    "Считалось с коэффициентом реализуемости (методика NBER w30866): " + (o.url || PAGE_URL) + "#method",
+    "Калькулятор: " + (o.url || PAGE_URL),
+    priceDateText(),
+  ];
+  return lines.join("\n");
+}
+// @cw:end
+
+// @cw:report
+/* ---------- PDF-отчёт (T13, ТЗ §5.1): «эффект → компания → задачи → затраты и тариф → методика → CTA» ----------
+   Чистая функция: всё, что нужно от страницы (название компании, логотип, дата), приходит в opts. */
+const CTA_COWORK_SELF = "https://helpdesk.bitrix24.ru/open/28844790/";   // инструкция: как подключить и работать в Коворк/Код
+const CTA_COWORK_HELP = "https://vibecode.bitrix24.tech/cowork";         // заявка на ранний доступ (см. COWORK-DATA.md)
+const REPORT_EXTRA_CSS = ""
+  + ".tt{width:100%;border-collapse:collapse;font-size:9.5pt;margin-top:4px}"
+  + ".tt th,.tt td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}"
+  + ".tt th{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}"
+  + ".tt td.n,.tt th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}"
+  + ".tt td.t{font-weight:700} .tt td .p{display:block;font-weight:400;color:var(--muted);font-size:8.5pt}"
+  + ".tt tr.sum td{border-bottom:0;border-top:2px solid var(--ink);font-weight:800}"
+  + ".rates{margin-top:8px;font-size:9pt;color:var(--muted)}"
+  + ".rates b{color:var(--ink);font-weight:700}";
+
+function buildCoworkReportHtml(calc, opts){
+  const o = opts || {};
+  const {res, tariff, sub, econ, company} = calc;
+  const escR = s => String(s == null ? "" : s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const dateStr = o.date || new Date().toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"});
+  const SITE = (o.url || PAGE_URL).replace(/^https?:\/\//,"").replace(/\/$/,"");
+  const LOGO = o.logo || "";
+  const fmtCompact = v => { v = Math.round(v); if(v>=1e9) return (v/1e9).toFixed(1).replace(".",",")+" млрд ₽"; if(v>=1e6) return (v/1e6).toFixed(1).replace(".",",")+" млн ₽"; if(v>=1e4) return Math.round(v/1e3)+" тыс ₽"; return groupFmt(String(v))+" ₽"; };
+  const approx = v => "≈ " + fmtCompact(v);
+  const days = (Math.round(res.days*10)/10).toLocaleString("ru-RU");
+  const period = periodByMonths(tariff.months);
+  const companyLine = o.companyName ? "<div class='co'>"+escR(o.companyName)+"</div>" : "";
+
+  // 1) главное число — освобождённые часы в месяц (с коэффициентом) и чистая экономия первого года
+  const hero = "<section><div class='hero'>"
+    + "<div class='hl'>Освободится в месяц с учётом реализуемости</div>"
+    + "<div class='hnum'>"+fmtHours(res.totalHours)+"</div>"
+    + "<div class='hm'>из "+fmtHours(res.totalRawHours)+" освобождённых · ≈ "+days+" рабочих дней · стоимость времени "+fmtMoney(res.totalFot)+" / мес</div>"
+    + (econ.netFirstYear > 0
+        ? "<div class='hv'><svg viewBox='0 0 24 24' fill='none' stroke='var(--green)' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' style='width:17px;height:17px'><path d='M20 6 9 17l-5-5'/></svg>"
+          + "<span>Чистая экономия первого года <b class='v'>"+approx(econ.netFirstYear)+"</b> — подписка окупается за "+econ.paybackDays+" раб. дн. месяца</span></div>"
+        : (econ.subscriptionMonth > 0 ? "<div class='hv'><span>Пока экономия ("+fmtMoney(res.totalFot)+" / мес) меньше подписки ("+fmtMoney(econ.subscriptionMonth)+" / мес)</span></div>" : ""))
+    + "</div></section>";
+  const takeaway = res.items.length
+    ? "<div class='takeaway'><b>Что это значит:</b> Коворк/Код снимает около <b>"+fmtHours(res.totalHours)+" в месяц</b> ручной работы"
+      + (res.fte >= 0.5 ? " — это примерно <b>"+(Math.round(res.fte*10)/10).toLocaleString("ru-RU")+" сотрудника</b> на полной ставке" : "")
+      + ". Освободившееся время уходит на клиентов, продажи и решения, а не на сборку отчётов руками.</div>"
+    : "";
+
+  // 2) компания: люди, оклады и ставки часа по ролям
+  const cells = [
+    ["Сотрудников всего", groupFmt(String(num(company.empCount)))+" чел."], ["Средняя ЗП", fmtMoney(num(company.empSal))+"/мес"],
+    ["Менеджеров по продажам", groupFmt(String(num(company.mgrCount)))+" чел."], ["ЗП менеджера", fmtMoney(num(company.mgrSal))+"/мес"],
+    ["Руководителей", groupFmt(String(num(company.ropCount)))+" чел."], ["ЗП руководителя", fmtMoney(num(company.ropSal))+"/мес"],
+  ];
+  const coGrid = "<div class='co-grid'>" + cells.map(c=>"<div class='co-cell'><div class='cl'>"+c[0]+"</div><div class='cv'>"+c[1]+"</div></div>").join("") + "</div>"
+    + "<div class='rates'>Стоимость часа (оклад × 1,4 ÷ 176): " + Object.values(ROLES).map(r=> r.name+" <b>"+fmtMoney(costHour(num(company[r.sal])))+"/ч</b>").join(" · ") + "</div>";
+
+  // 3) задачи: таблица
+  const rows = res.items.slice().sort((x,y)=>y.r.hours - x.r.hours).map(it=>{
+    const v = state[it.task.id].values;
+    return "<tr><td class='t'>"+escR(it.task.n)+"<span class='p'>"+escR(it.task.p)+"</span></td>"
+      + "<td class='n'>"+fmtMin(num(v.b))+"</td><td class='n'>"+fmtMin(num(v.a))+"</td>"
+      + "<td class='n'>"+num(v.f)+" "+(PERIOD_LABEL[v.u]||"")+"</td><td class='n'>"+num(v.c)+"</td>"
+      + "<td class='n'>"+fmtHours(it.r.hours)+" <span style='color:var(--muted);font-weight:400'>×"+fmtPct(it.r.real)+"</span></td>"
+      + "<td class='n'>"+fmtMoney(it.r.fot)+"</td></tr>";
+  }).join("");
+  const table = "<table class='tt'><thead><tr><th>Задача</th><th class='n'>Сейчас</th><th class='n'>С Коворком</th><th class='n'>Как часто</th><th class='n'>Людей</th><th class='n'>Часов / мес</th><th class='n'>₽ / мес</th></tr></thead>"
+    + "<tbody>"+rows+"<tr class='sum'><td>Итого</td><td></td><td></td><td></td><td></td><td class='n'>"+fmtHours(res.totalHours)+"</td><td class='n'>"+fmtMoney(res.totalFot)+"</td></tr></tbody></table>"
+    + "<div class='rates'>Часов / мес — с учётом коэффициента реализуемости (указан рядом); без него освобождается "+fmtHours(res.totalRawHours)+".</div>";
+
+  // 4) затраты и тариф
+  const costRows = "<div class='trow'><span>Тариф Коворк/Код — «"+tariff.chosen.name+"»"+(tariff.seats>1 ? ", подписок: "+tariff.seats : "")
+      + (period.months > 1 ? ", оплата за "+period.months+" мес (скидка "+Math.round(period.discount*100)+"%)" : ", оплата помесячно")+"</span>"
+      + "<span class='tv'>"+(sub.vibesMonth ? fmtInt(sub.vibesMonth)+" Ꝟ/мес" : "бесплатно")+"</span></div>"
+    + "<div class='trow'><span>Подписка в рублях с НДС "+Math.round(COWORK_PRICE_CONFIG.vat*100)+"%</span><span class='tv'>"+fmtMoney(sub.grossMonth)+"/мес · "+fmtMoney(sub.grossYear)+"/год</span></div>"
+    + "<div class='trow'><span>Стоимость освобождённого времени</span><span class='tv'>"+fmtMoney(res.totalFot)+"/мес · "+fmtMoney(econ.fotYear)+"/год</span></div>"
+    + "<div class='trow total'><span>Чистая экономия первого года</span><span class='tv'>"+fmtMoney(econ.netFirstYear)+"</span></div>";
+  const recText = tierWhy(tariff.rec, tariff.manual ? tariff.chosen.id : null)
+    + (thresholdsAreEstimate() ? " Пороги тарифов — ориентир до подтверждения продуктом." : "")
+    + " " + COWORK_PRICE_CONFIG.requires;
+
+  // 5) CTA — инструкция и заявка с QR (ссылки — рабочие значения из COWORK-DATA.md)
+  const shortUrl = u => u.replace(/^https?:\/\//,"").replace(/^www\./,"").replace(/\/$/,"");
+  const ctaCard = (url, primary, title, text, btn, cap) => !url ? "" :
+    "<div class='cta-card"+(primary?" primary":"")+"'>"
+    + "<div class='cta-h'><span class='cta-i"+(primary?"":" alt")+"'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>"
+    + (primary ? "<path d='M13 2 3 14h7l-1 8 10-12h-7z'/>" : "<path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/>")+"</svg></span>"+title+"</div>"
+    + "<div class='cta-p'>"+text+"</div>"
+    + "<a class='cta-btn"+(primary?"":" sec")+"' href='"+url+"' target='_blank' rel='noopener'>"+btn+"</a>"
+    + "<div class='cta-url'>"+shortUrl(url)+"</div>"
+    + "<div class='cta-qr'><span class='qrbox'>"+makeQrSvg(url)+"</span><span class='cta-cap'>"+cap+"</span></div></div>";
+  const cta = (CTA_COWORK_SELF || CTA_COWORK_HELP)
+    ? "<section class='cta-sec'><p class='sec-eyebrow'>Как начать работать с Коворк/Код</p><div class='cta-grid'>"
+      + ctaCard(CTA_COWORK_SELF, true, "Подключить самостоятельно", "Скачайте приложение в разделе «AI и агенты → Коворк/Код», подключите его к своему Битрикс24 и начните с бесплатного тарифа.", "Открыть инструкцию", "Наведите камеру телефона — откроется инструкция")
+      + ctaCard(CTA_COWORK_HELP, false, "Получить ранний доступ", "Оставьте заявку на платформе Вайбкод — команда Битрикс24 подключит Коворк/Код и поможет с первыми задачами.", "Оставить заявку", "Скан — откроется форма заявки")
+      + "</div></section>"
+    : "";
+
+  return "<!DOCTYPE html><html lang='ru'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+    + "<title>Коворк/Код — часы и деньги" + (o.companyName ? " — " + escR(o.companyName) : "") + "</title>"
+    + "<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>"
+    + "<link href='https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap' rel='stylesheet'>"
+    + "<style>" + REPORT_CSS + REPORT_EXTRA_CSS + "</style></head><body>"
+    + "<div class='sheet'><div class='spectrum'></div>"
+    + "<header>"+companyLine+"<div class='brandline'>"
+    + (LOGO ? "<img class='logo' src='"+LOGO+"' alt=''>" : "<span class='logo'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v18M3 12h18'/></svg></span>")
+    + "<span class='bt'>Bitrix24 · Коворк/Код · Часы и деньги</span></div>"
+    + "<h1 class='wordmark'>Сколько часов вернёт Коворк/Код</h1>"
+    + "<div class='meta'>Отчёт сформирован "+dateStr+" · тариф «"+tariff.chosen.name+"»"+(tariff.seats>1 ? " × "+tariff.seats : "")+" · задач: "+res.items.length+"</div></header>"
+    + hero + takeaway
+    + "<section><p class='sec-eyebrow'>Данные о компании</p>"+coGrid+"</section>"
+    + "<section><p class='sec-eyebrow'>Задачи и освобождённые часы</p>"+table+"</section>"
+    + "<section><p class='sec-eyebrow'>Затраты и тариф</p><div class='tot'>"+costRows+"</div><div class='rec'>"+recText+"</div></section>"
+    + "<section><p class='sec-eyebrow'>Методика</p>"+METHOD_NOTE+"</section>"
+    + cta
+    + "<div class='ft'>Расчёт носит оценочный характер. Налоговая модель упрощённая (оклад на руки × 1,4); стоимость часа = оклад × 1,4 ÷ 176. "+priceDateText()+" 1 вайб = 1 ₽ без НДС.</div>"
+    + "<div class='ft-site'>Рассчитано на "+SITE+"</div></div>"
+    + "<div class='runfoot'><span>Коворк/Код · Часы и деньги</span><span>"+dateStr+" · "+SITE+"</span></div>"
+    + "</body></html>";
+}
+// @cw:end
+
+// @cw:analytics
+/* ---------- Аналитика Коворка (T14, ТЗ §6): записи событий; отправка — sendLog ядра, приёмник — report-logger.gs ----------
+   Лист «Отчёты»: те же колонки, что у BitrixGPT (deploy пустой, tariff = имя тарифа Коворка) + preset, tier, period, seats,
+   hoursMonth, rawHoursMonth, netYear. Лист «Копии»: событие copy. Снимок сессии дополняется preset, tier, copies. */
+function coworkEventBase(calc, extra){
+  const {res, tariff, sub, econ} = calc;
+  return Object.assign({
+    ts: new Date().toISOString(),
+    version: PRODUCT_VERSION,
+    preset: extra && extra.preset ? extra.preset : "",
+    tier: tariff.chosen.name,
+    period: tariff.months,
+    seats: tariff.seats,
+    hoursMonth: Math.round(res.totalHours * 10) / 10,
+    econMonth: Math.round(res.totalFot),
+    netYear: Math.round(econ.netFirstYear),
+  }, extra || {});
+}
+function buildCoworkReportRecord(calc, opts){
+  const o = opts || {}, {res, company} = calc;
+  const c = company || {};
+  const companyField = k => (num(c[k]) > 0 ? num(c[k]) : "");
+  return Object.assign(coworkEventBase(calc, {preset: o.preset || ""}), {
+    type: "report",
+    deploy: "",
+    iframe: !!o.iframe, host: o.host || "",
+    company: o.companyName || "",
+    empCount: companyField("empCount"), empSal: companyField("empSal"),
+    mgrCount: companyField("mgrCount"), mgrSal: companyField("mgrSal"),
+    ropCount: companyField("ropCount"), ropSal: companyField("ropSal"),
+    blocks: res.items.map(it=>it.task.n).join(" | "),
+    blocksDetail: res.items.map(it=>it.task.n + "=" + Math.round(it.r.fot)).join(" | "),
+    tariff: calc.tariff.chosen.name,
+    econYear: Math.round(res.totalFot * 12),
+    potMonth: "",
+    rawHoursMonth: Math.round(res.totalRawHours * 10) / 10,
+  });
+}
+function buildCopyRecord(calc, opts){
+  const o = opts || {};
+  return Object.assign(coworkEventBase(calc, {preset: o.preset || ""}), { type: "copy", iframe: !!o.iframe, host: o.host || "" });
+}
+// поля Коворка в снимке сессии ядра (лист «Сессии»)
+function coworkSessionFields(calc, opts){
+  const o = opts || {};
+  return { preset: o.preset || "", tier: calc && calc.tariff ? calc.tariff.chosen.name : "", copies: o.copies || 0 };
+}
+// @cw:end
+
+/* ---------- Связка модели со страницей: интерфейс задач (T8); панель итога — T10 ---------- */
 // значения блока «Данные о компании» → {empCount, empSal, mgrCount, mgrSal, ropCount, ropSal}
 function readCompany(){
   const c = {};
   document.querySelectorAll(".comp-in").forEach(inp=>{ c[inp.dataset.comp] = parseNum(inp.value); });
   return c;
 }
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const $ = id => document.getElementById(id);
+
+// «≈ N ₽/ч» под окладом каждой роли — ставка выводится автоматически, единой ставки нет (ТЗ §3.1)
+function renderRateHints(company){
+  Object.values(ROLES).forEach(role=>{
+    const inp = document.querySelector('.comp-in[data-comp="'+role.sal+'"]');
+    if(!inp) return;
+    const field = inp.closest(".field");
+    let hint = field.querySelector(".rate-hint");
+    if(!hint){ hint = document.createElement("div"); hint.className = "rate-hint"; field.appendChild(hint); }
+    hint.textContent = "≈ " + fmtMoney(costHour(num(company[role.sal]))) + "/ч";
+  });
+}
+
+/* ---------- Карточки задач: рендер один раз, дальше точечные обновления (ТЗ §4.5) ---------- */
+const UNIT_OPTIONS = Object.keys(PERIOD_LABEL);
+function fieldHtml(task, k, label, suf){
+  return '<div class="field" data-field="'+k+'"><label>'+label+'</label><div class="in">'
+    + '<input type="text" inputmode="decimal" class="num-in" data-k="'+k+'" value="'+groupFmt(String(task[k]))+'" aria-label="'+label+', '+esc(task.n)+'">'
+    + '<span class="suf">'+suf+'</span></div></div>';
+}
+function cardHtml(task){
+  const flags = (task.code ? '<span class="flag code">режим Код</span>' : '') + (task.est ? '<span class="flag est">примерно</span>' : '');
+  const units = UNIT_OPTIONS.map(u=>'<option value="'+u+'"'+(u===task.u?' selected':'')+'>'+PERIOD_LABEL[u]+'</option>').join("");
+  return '<div class="card" id="card-'+task.id+'" data-id="'+task.id+'">'
+    + '<label class="card-head" for="chk-'+task.id+'">'
+    +   '<input type="checkbox" class="chk task-chk" id="chk-'+task.id+'" data-id="'+task.id+'">'
+    +   '<span class="card-title"><span class="t">'+esc(task.n)+'</span><span class="s">'+esc(task.p)+'</span>'
+    +   '<span class="pills"><span class="pill hand" data-out="b">Сейчас · '+fmtMin(task.b)+'</span><span class="pill ai" data-out="a">С Коворком · '+fmtMin(task.a)+'</span>'+flags+'</span></span>'
+    + '</label>'
+    + '<div class="card-body" hidden>'
+    +   '<div class="fields">'
+    +     fieldHtml(task, "b", "Сейчас", "мин")
+    +     fieldHtml(task, "a", "С Коворком", "мин")
+    +     '<div class="field freq" data-field="f"><label>Как часто</label><div class="in">'
+    +       '<input type="text" inputmode="decimal" class="num-in" data-k="f" value="'+task.f+'" aria-label="Как часто, '+esc(task.n)+'">'
+    +       '<select class="unit-sel" data-k="u" aria-label="Единица периода">'+units+'</select></div></div>'
+    +     fieldHtml(task, "c", "Сколько человек", "чел.")
+    +   '</div>'
+    +   '<div class="result">'
+    +     '<div class="res-head"><button type="button" class="info-btn" data-info="'+task.id+'" aria-label="Как считается экономия">'+ICON_INFO+'</button></div>'
+    +     '<div class="res-row total"><span class="lbl">Вы экономите</span><span class="val" data-out="sum"></span></div>'
+    +     '<div class="real-row">В расчёте учтена реализуемая доля: <b data-out="real"></b>'
+    +       '<button type="button" class="info-btn" data-real="'+task.id+'" aria-label="Почему такой коэффициент">'+ICON_INFO+'</button></div>'
+    +   '</div>'
+    +   '<p class="prompt"><b>Попробуйте написать Коворку</b>«'+esc(task.q)+'»</p>'
+    + '</div></div>';
+}
+function renderGroups(){
+  const root = $("groups");
+  root.innerHTML = GROUPS.map(g=>{
+    const tasks = TASKS.filter(t=>t.group===g.id);
+    return '<section class="group group-'+g.id+'" id="sec-'+g.id+'" aria-labelledby="lbl-'+g.id+'">'
+      + '<div class="group-label"><span id="lbl-'+g.id+'">'+g.title+'</span><small data-count="'+g.id+'"></small></div>'
+      + tasks.map(cardHtml).join("") + '</section>';
+  }).join("");
+}
+// карточка ← состояние: чекбокс, раскрытие, значения полей (после пресета, сброса или восстановления)
+function syncCards(){
+  TASKS.forEach(t=>{
+    const st = state[t.id], card = $("card-"+t.id);
+    if(!card) return;
+    card.querySelector(".task-chk").checked = st.selected;
+    card.classList.toggle("active", st.selected);
+    card.querySelector(".card-body").hidden = !st.selected;
+    card.querySelectorAll(".num-in").forEach(inp=>{ inp.value = groupFmt(String(num(st.values[inp.dataset.k]))); });
+    card.querySelector(".unit-sel").value = st.values.u;
+  });
+}
+// одна карточка ← расчёт: плашки, строка экономии, коэффициент
+function updateCard(task, company){
+  const st = state[task.id], card = $("card-"+task.id);
+  if(!card) return;
+  card.querySelector('[data-out="b"]').textContent = "Сейчас · " + fmtMin(num(st.values.b));
+  card.querySelector('[data-out="a"]').textContent = "С Коворком · " + fmtMin(num(st.values.a));
+  if(!st.selected) return;
+  const r = computeTask(task, st, company);
+  card.querySelector('[data-out="sum"]').innerHTML = fmtHours(r.hours) + " в месяц · " + fmtMoney(r.fot)
+    + (r.rawHours > r.hours ? ' <small>освобождается ' + fmtHours(r.rawHours) + '</small>' : '');
+  card.querySelector('[data-out="real"]').textContent = fmtPct(r.real);
+}
+function updateGroupCounts(){
+  GROUPS.forEach(g=>{
+    const tasks = TASKS.filter(t=>t.group===g.id), on = tasks.filter(t=>state[t.id].selected).length;
+    const el = document.querySelector('[data-count="'+g.id+'"]');
+    if(el) el.textContent = "отмечено " + on + " из " + tasks.length;
+  });
+}
+
+/* ---------- Пресеты «Кто вы?» ---------- */
+function renderPresets(){
+  $("presets").innerHTML = '<span class="lbl">Кто вы?</span>' + Object.entries(PRESETS).map(([id,p])=>
+    '<button type="button" class="pchip" data-preset="'+id+'" aria-pressed="false">'+p.label+'</button>').join("");
+}
+let activePreset = null;
+function markPreset(id){
+  activePreset = id;
+  document.querySelectorAll("#presets .pchip").forEach(b=> b.setAttribute("aria-pressed", String(b.dataset.preset===id)));
+}
+// любая ручная правка снимает подсветку пресета, данные не сбрасывает (ТЗ §4.1)
+const clearPreset = () => markPreset(null);
+function choosePreset(id, byUser){
+  if(!applyPreset(id)) return;
+  pricing.tierSel = null; pricing.seatsManual = false;
+  markPreset(id);
+  if(byUser){   // выбор пресета руками — событие сессии; стартовый пресет при загрузке не считается активностью
+    TASKS.forEach(t=>{ if(state[t.id].selected) sessBlock(t.n, true); });
+    sessTouch();
+  }
+  syncCards();
+  recompute();
+}
+// «Сбросить»: типовые значения, пресет по умолчанию, ручные правки и сохранённое состояние забыты
+function resetAll(){
+  clearSavedState();
+  initState();
+  pricing.tierSel = null; pricing.period = 1; pricing.seatsManual = false; pricing.seats = 1;
+  choosePreset(DEFAULT_PRESET, true);
+}
+
+/* ---------- Сохранение состояния (T11, ТЗ §4.5): localStorage, ключ со схемой; смена схемы отбрасывает старое ---------- */
+const STATE_KEY = "cowork_state_v1";
+const STATE_SCHEMA = 1;
+function readCompanyInputs(){
+  const c = {};
+  document.querySelectorAll(".comp-in").forEach(inp=>{ c[inp.dataset.comp] = inp.value; });
+  return c;
+}
+function saveState(){
+  const tasks = {};
+  TASKS.forEach(t=>{ const st = state[t.id]; tasks[t.id] = {selected: st.selected, values: st.values, dirty: st.dirty}; });
+  lsSet(STATE_KEY, JSON.stringify({
+    schema: STATE_SCHEMA, savedAt: Date.now(), preset: activePreset,
+    tasks, company: readCompanyInputs(), companyName: ($("company-name") || {}).value || "",
+    pricing: {tierSel: pricing.tierSel, period: pricing.period, seatsManual: pricing.seatsManual, seats: pricing.seats},
+  }));
+}
+// восстановление: true, если сохранённое состояние подхвачено; иначе применяется пресет по умолчанию
+function restoreState(){
+  let s = null;
+  try { s = JSON.parse(lsGet(STATE_KEY, "null")); } catch(e){ s = null; }
+  if(!s || s.schema !== STATE_SCHEMA || !s.tasks) return false;
+  Object.entries(s.company || {}).forEach(([k, v])=>{
+    const inp = document.querySelector('.comp-in[data-comp="'+k+'"]');
+    if(!inp || typeof v !== "string") return;
+    if(inp.value !== v){ inp.value = groupFmt(v); inp.classList.remove("prefilled"); }
+  });
+  if($("company-name") && typeof s.companyName === "string") $("company-name").value = s.companyName;
+  TASKS.forEach(t=>{
+    const saved = s.tasks[t.id], st = state[t.id];
+    if(!saved) return;
+    st.selected = !!saved.selected;
+    TASK_FIELDS.forEach(k=>{
+      const v = saved.values && saved.values[k];
+      if(k === "u"){ if(PERIOD_MULT[v]) st.values.u = v; }
+      else if(v !== undefined && v !== null && !Number.isNaN(Number(v))) st.values[k] = Number(v);
+    });
+    st.dirty = Object.assign({}, saved.dirty || {});
+  });
+  const p = s.pricing || {};
+  pricing.tierSel = tierById(p.tierSel) ? p.tierSel : null;
+  pricing.period = periodByMonths(p.period).months;
+  pricing.seatsManual = !!p.seatsManual;
+  pricing.seats = Math.max(1, Math.round(num(p.seats)) || 1);
+  markPreset(PRESETS[s.preset] ? s.preset : null);
+  return true;
+}
+function clearSavedState(){ try{ localStorage.removeItem(STATE_KEY); }catch(e){} }
+
+/* ---------- События карточек: делегирование, без перерисовки списка ---------- */
+$("groups").addEventListener("change", e=>{
+  const el = e.target;
+  if(el.classList.contains("task-chk")){
+    const task = taskById(el.dataset.id), st = state[task.id], card = $("card-"+task.id);
+    st.selected = el.checked;
+    card.classList.toggle("active", st.selected);
+    card.querySelector(".card-body").hidden = !st.selected;
+    sessBlock(task.n, st.selected);
+    clearPreset();
+    updateCard(task, readCompany());
+    recompute();
+  } else if(el.classList.contains("unit-sel")){
+    const id = el.closest(".card").dataset.id, st = state[id];
+    st.values.u = el.value; st.dirty.u = true;
+    sessField(id, "u"); clearPreset();
+    updateCard(taskById(id), readCompany());
+    recompute();
+  }
+});
+$("groups").addEventListener("input", e=>{
+  const inp = e.target;
+  if(!inp.classList.contains("num-in")) return;
+  const id = inp.closest(".card").dataset.id, k = inp.dataset.k, st = state[id];
+  st.values[k] = onNumInput(inp);
+  st.dirty[k] = true;                      // ручное значение: пресет и автозаполнение его больше не трогают
+  sessField(id, k); clearPreset();
+  updateCard(taskById(id), readCompany());
+  recompute();
+});
+$("presets").addEventListener("click", e=>{
+  const b = e.target.closest(".pchip"); if(b) choosePreset(b.dataset.preset, true);
+});
+document.querySelectorAll(".navbar .chip").forEach(btn=>{
+  btn.addEventListener("click", ()=>{ const el = $(btn.dataset.go); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); });
+});
+$("reset-btn").addEventListener("click", resetAll);
+
+/* ---------- Панель итога (T10, ТЗ §4.3) ---------- */
+function renderTiers(){
+  $("tiers").innerHTML = COWORK_PRICE_CONFIG.tiers.map(t=>
+    '<button type="button" class="tier" role="radio" aria-checked="false" tabindex="-1" data-t="'+t.id+'" style="--tier-c:'+t.color+'">'
+    + '<span class="tn">'+t.name+'</span><span class="tp" data-out="price"></span><span class="tv" data-out="vibes"></span></button>').join("");
+  $("period").innerHTML = COWORK_PRICE_CONFIG.periods.map(p=>
+    '<button type="button" data-m="'+p.months+'" aria-pressed="false">'+p.months+' мес'+(p.discount ? ' −'+Math.round(p.discount*100)+'%' : '')+'</button>').join("");
+  $("tier-est").hidden = !thresholdsAreEstimate();
+}
+function renderPanel(res, tariff, sub, econ){
+  const any = res.items.length > 0;
+  $("sp-hours").textContent = fmtHours(res.totalHours);
+  $("sp-sub").innerHTML = any
+    ? 'из <b>' + fmtHours(res.totalRawHours) + '</b> освобождённых, с учётом реализуемости · ≈ <b>' + (Math.round(res.days*10)/10).toLocaleString("ru-RU") + '</b> '
+      + plural(Math.round(res.days), ["рабочий день","рабочих дня","рабочих дней"])
+      + (res.fte >= 1 ? ', как ещё <b>' + (Math.round(res.fte*10)/10).toLocaleString("ru-RU") + '</b> сотрудника на полной ставке' : '')
+    : 'Отметьте задачи, которые делаете руками, — калькулятор посчитает часы, деньги и подходящий тариф.';
+
+  // тарифы: цена одной подписки в месяц с НДС для выбранного периода, второй строкой — вайбы
+  const period = periodByMonths(tariff.months);
+  document.querySelectorAll("#tiers .tier").forEach(b=>{
+    const one = subscriptionCost(b.dataset.t, period.months, 1);
+    const isChosen = b.dataset.t === tariff.chosen.id;
+    b.setAttribute("aria-checked", String(isChosen));
+    b.tabIndex = isChosen ? 0 : -1;
+    b.querySelector('[data-out="price"]').textContent = one.grossMonth ? fmtMoney(one.grossMonth) : "0 ₽";
+    b.querySelector('[data-out="vibes"]').textContent = one.tier.vibes ? fmtInt(one.vibesMonth) + " Ꝟ/мес" : "бесплатно";
+    let rec = b.querySelector(".rec");
+    if(any && b.dataset.t === tariff.rec.tier.id){ if(!rec){ rec = document.createElement("span"); rec.className = "rec"; rec.textContent = "подходит"; b.appendChild(rec); } }
+    else if(rec) rec.remove();
+  });
+  $("tier-why").textContent = tierWhy(tariff.rec, tariff.manual ? tariff.chosen.id : null);
+  $("tier-auto").hidden = !tariff.manual;
+  document.querySelectorAll("#period button").forEach(b=> b.setAttribute("aria-pressed", String(Number(b.dataset.m) === tariff.months)));
+  const seatsEl = $("seats");
+  if(!pricing.seatsManual || document.activeElement !== seatsEl) seatsEl.value = String(tariff.seats);   // в ручном режиме не мешаем набору
+  $("seats-auto").hidden = !pricing.seatsManual;
+  $("seats-hint").textContent = pricing.seatsManual ? "" : "(по числу людей)";
+
+  // деньги: месяц и первый год
+  const negative = econ.netMonth < 0;
+  $("money").innerHTML = '<span></span><span class="h">Месяц</span><span class="h year">Первый год</span>'
+    + '<span class="lbl">Стоимость времени</span><span class="num">' + fmtMoney(res.totalFot) + '</span><span class="num year">' + fmtMoney(econ.fotYear) + '</span>'
+    + '<span class="lbl cost">Подписка ' + tariff.chosen.name + (tariff.seats > 1 ? ' × ' + tariff.seats : '') + (period.discount ? ', −' + Math.round(period.discount*100) + '%' : '') + '</span>'
+    + '<span class="num cost">− ' + fmtMoney(econ.subscriptionMonth) + '</span><span class="num cost year">− ' + fmtMoney(econ.subscriptionYear) + '</span>'
+    + '<span class="m-line"></span>'
+    + '<span class="lbl net' + (negative ? ' negative' : '') + '">Чистая экономия</span>'
+    + '<span class="num net' + (negative ? ' negative' : '') + '">' + fmtMoney(econ.netMonth) + '</span><span class="num net year' + (negative ? ' negative' : '') + '">' + fmtMoney(econ.netFirstYear) + '</span>';
+  // .net на span-ах: перекрасим через классы контейнера-ячейки
+  document.querySelectorAll("#money .num.net").forEach(el=>{ el.style.background = negative ? "none" : ""; el.style.color = negative ? "#ffcf9e" : ""; el.style.webkitTextFillColor = negative ? "#ffcf9e" : ""; });
+
+  const v = $("verdict");
+  v.hidden = !any;
+  v.classList.toggle("negative", any && econ.netMonth <= 0);
+  $("verdict-text").textContent = verdictText(res, econ);
+
+  // где экономия больше всего — до 6 задач
+  const top = res.items.slice().sort((x,y)=>y.r.hours - x.r.hours).slice(0, 6);
+  $("top-block").hidden = !top.length;
+  const mx = top.length ? Math.max(top[0].r.hours, 0.001) : 1;
+  $("bars").innerHTML = top.map(it=>'<li><span class="lab"><span>'+esc(it.task.n)+'</span><b>'+fmtHours(it.r.hours)+'</b></span>'
+    + '<span class="track"><span class="fill" style="width:'+(it.r.hours/mx*100).toFixed(1)+'%"></span></span></li>').join("");
+
+  $("dl-btn").disabled = !any || typeof buildCoworkReportHtml !== "function";
+  $("copy-btn").disabled = !any || typeof copySummary !== "function";
+}
+
+// события панели: тариф вручную (мышь и стрелки), период, подписки, сброс к автоподбору
+$("tiers").addEventListener("click", e=>{
+  const b = e.target.closest(".tier"); if(!b) return;
+  pricing.tierSel = b.dataset.t; sessTouch(); recompute();
+});
+$("tiers").addEventListener("keydown", e=>{
+  const keys = {ArrowRight:1, ArrowDown:1, ArrowLeft:-1, ArrowUp:-1};
+  if(!(e.key in keys)) return;
+  e.preventDefault();
+  const tiers = COWORK_PRICE_CONFIG.tiers, cur = tierIndex(currentTierId());
+  const next = tiers[(cur + keys[e.key] + tiers.length) % tiers.length];
+  pricing.tierSel = next.id; sessTouch(); recompute();
+  const btn = document.querySelector('#tiers .tier[data-t="'+next.id+'"]'); if(btn) btn.focus();
+});
+function currentTierId(){ const c = document.querySelector('#tiers .tier[aria-checked="true"]'); return c ? c.dataset.t : COWORK_PRICE_CONFIG.tiers[0].id; }
+$("tier-auto").addEventListener("click", ()=>{ pricing.tierSel = null; sessTouch(); recompute(); });
+$("period").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-m]"); if(!b) return;
+  pricing.period = Number(b.dataset.m); sessTouch(); recompute();
+});
+$("seats").addEventListener("input", e=>{
+  pricing.seatsManual = true; pricing.seats = Math.max(1, Math.round(onNumInput(e.target))); sessTouch(); recompute();
+});
+$("seats-auto").addEventListener("click", ()=>{ pricing.seatsManual = false; sessTouch(); recompute(); });
+
+/* ---------- «Скопировать расчёт» (T12) ---------- */
+let lastCalc = null;   // последний расчёт: res, tariff, sub, econ, company — для копирования и отчёта
+function currentSummaryText(){
+  if(!lastCalc) return "";
+  return buildSummaryText(lastCalc.res, lastCalc.tariff, lastCalc.sub, lastCalc.econ, lastCalc.company,
+    { companyName: ($("company-name").value || "").trim(), url: PAGE_URL });
+}
+let copiedTimer = null;
+function showCopied(){
+  const el = $("copied"); el.hidden = false;
+  clearTimeout(copiedTimer); copiedTimer = setTimeout(()=>{ el.hidden = true; }, 2000);
+}
+function copyFallback(text){
+  const ta = $("copy-fallback");
+  ta.value = text; ta.hidden = false; ta.focus(); ta.select();
+  let ok = false;
+  try { ok = document.execCommand && document.execCommand("copy"); } catch(e){ ok = false; }
+  if(ok){ ta.hidden = true; showCopied(); }   // иначе textarea остаётся выделенной — можно скопировать вручную
+  return ok;
+}
+function copySummary(){
+  const text = currentSummaryText();
+  if(!text) return;
+  const done = ()=>{ showCopied(); if(typeof logCopy === "function") logCopy(); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, ()=>{ if(copyFallback(text) && typeof logCopy === "function") logCopy(); });
+  } else if(copyFallback(text) && typeof logCopy === "function") logCopy();
+}
+$("copy-btn").addEventListener("click", copySummary);
+$("copy-fallback").addEventListener("blur", ()=>{ $("copy-fallback").hidden = true; });
+
+/* ---------- Модалка перед отчётом и открытие предпросмотра (T13) ---------- */
+const reportModal = document.createElement("div");
+reportModal.className = "modal-overlay"; reportModal.hidden = true;
+reportModal.innerHTML = "<div class='modal' role='dialog' aria-labelledby='rm-title'>"
+  + "<button type='button' class='modal-x' id='rm-x' aria-label='Закрыть'>×</button>"
+  + "<h3 id='rm-title'>Отчёт в PDF</h3>"
+  + "<p class='msub'>Проверьте тариф, срок оплаты и число подписок — они попадут в отчёт. Изменить можно в панели итога.</p>"
+  + "<div class='modal-field'><label for='rm-company'>Название компании <span style='opacity:.6'>(для отчёта)</span></label><input type='text' id='rm-company' maxlength='80' placeholder='Например, ООО «Ромашка»'></div>"
+  + "<div class='rm-sum' id='rm-sum'></div>"
+  + "<div class='price-date' id='rm-date'></div>"
+  + "<div class='modal-actions'><button type='button' class='btn-secondary' id='rm-cancel'>Отмена</button><button type='button' class='btn-primary' id='rm-ok'>Сформировать отчёт</button></div>"
+  + "</div>";
+document.querySelector(".wrap").appendChild(reportModal);
+function openReportModal(){
+  if(!lastCalc || !lastCalc.res.items.length) return;
+  const {tariff, sub} = lastCalc, period = periodByMonths(tariff.months);
+  $("rm-company").value = ($("company-name").value || "").trim();
+  $("rm-sum").innerHTML = "<div class='trow'><span>Тариф</span><b>"+tariff.chosen.name+(tariff.manual ? " <small>(по задачам подходит "+tariff.rec.tier.name+")</small>" : "")+"</b></div>"
+    + "<div class='trow'><span>Оплата</span><b>"+(period.months > 1 ? "за "+period.months+" мес, скидка "+Math.round(period.discount*100)+"%" : "помесячно")+"</b></div>"
+    + "<div class='trow'><span>Подписок</span><b>"+tariff.seats+"</b></div>"
+    + "<div class='trow'><span>Подписка в месяц с НДС</span><b>"+fmtMoney(sub.grossMonth)+"</b></div>";
+  $("rm-date").textContent = priceDateText();
+  reportModal.hidden = false;
+  setTimeout(()=>{ $("rm-company").focus(); }, 30);
+}
+function closeReportModal(){ reportModal.hidden = true; }
+function openCoworkReport(){
+  if(!lastCalc) return;
+  const companyName = ($("rm-company").value || "").trim();
+  if($("company-name").value.trim() !== companyName) $("company-name").value = companyName;
+  const logo = (document.querySelector("link[rel='icon'][sizes='32x32']") || {}).href || "";
+  closeReportModal();
+  showReportHtml(buildCoworkReportHtml(lastCalc, {companyName, logo, url: PAGE_URL}));
+  if(typeof logCoworkReport === "function") logCoworkReport(companyName);   // аналитика — T14
+  saveState();
+}
+$("dl-btn").addEventListener("click", openReportModal);
+$("rm-x").addEventListener("click", closeReportModal);
+$("rm-cancel").addEventListener("click", closeReportModal);
+$("rm-ok").addEventListener("click", openCoworkReport);
+$("rm-company").addEventListener("keydown", e=>{ if(e.key==="Enter") openCoworkReport(); });
+reportModal.addEventListener("click", e=>{ if(e.target===reportModal) closeReportModal(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeReportModal(); });
 
 // ключ → заголовок и текст модалки «i» (блок info-modal ядра делегирует сюда клики по .info-btn)
 function openInfo(key){
-  const t = document.getElementById("info-title");
-  const x = document.getElementById("info-text");
+  const t = $("info-title");
+  const x = $("info-text");
   const k = String(key);
   sessInfo(k);   // где просят пояснения — зоны трения
   x.textContent = "";
@@ -745,19 +1609,29 @@ function openInfo(key){
   infoModal.hidden = false;
 }
 
-// главный пересчёт: часы и деньги по задачам; панель итога и мини-итог — T10 (пока краткая сводка)
+// главный пересчёт: задачи → тариф и подписки → финмодель; карточки, навбар, панель итога
 function recompute(){
-  const res = computeAll(readCompany());
+  const company = readCompany();
+  const res = computeAll(company);
   sessEcon(res.totalFot);   // пик экономии на экране — виден даже без отчёта
-  const body = document.getElementById("summary-body");
-  if(!res.items.length){
-    body.innerHTML = '<p class="empty">Отметьте задачи, которые делаете руками, и калькулятор посчитает часы, деньги и подходящий тариф.</p>';
-    return;
-  }
-  body.innerHTML = '<p class="empty">Освобождается <b>' + fmtHours(res.totalRawHours) + '</b> в месяц, в результат уходит <b>'
-    + fmtHours(res.totalHours) + '</b> — это ' + (Math.round(res.days*10)/10).toLocaleString("ru-RU")
-    + ' рабочих дней. Стоимость этого времени: <b>' + fmtMoney(res.totalFot) + '</b> в месяц. Задач выбрано: ' + res.items.length + '.</p>';
+  const tariff = resolveTariff(res);
+  const sub = subscriptionCost(tariff.chosen.id, tariff.months, tariff.seats);
+  const econ = coworkEconomics(res.totalFot, sub);
+
+  renderRateHints(company);
+  TASKS.forEach(t=>{ if(state[t.id].selected) updateCard(t, company); });
+  updateGroupCounts();
+  $("nav-count").textContent = res.items.length
+    ? "Выбрано: " + res.items.length + " " + plural(res.items.length, ["задача","задачи","задач"]) : "Ничего не выбрано";
+  $("nav-total").innerHTML = res.items.length
+    ? "Освободится: <b>" + fmtHours(res.totalHours) + "/мес</b> · <b>" + fmtMoney(res.totalFot) + "/мес</b>" : "";
+
+  lastCalc = {res, tariff, sub, econ, company};
+  renderPanel(res, tariff, sub, econ);
+  saveState();
 }
+function plural(n, forms){ const n10 = n % 10, n100 = n % 100; if(n10===1 && n100!==11) return forms[0]; if(n10>=2 && n10<=4 && (n100<10 || n100>=20)) return forms[1]; return forms[2]; }
+$("price-date").textContent = priceDateText();
 
 // @core:company
 // Контракт: state[id] = {values, dirty}; поле блока — `#card-<id> .num-in[data-k=<ключ>]`;
@@ -866,6 +1740,30 @@ window.addEventListener("pagehide", ()=> sendSession("pagehide"));
 setInterval(()=> sendSession("timer"), 120000);   // страховка для долгих сессий
 // @core:end
 
+/* ---------- Аналитика: отправка событий (T14) ---------- */
+let copiesCount = 0;
+const hostInfo = () => ({ iframe: inIframe(), host: inIframe() ? (document.referrer || "") : location.href });
+function logCoworkReport(companyName){
+  if(!lastCalc) return;
+  sendLog(buildCoworkReportRecord(lastCalc, Object.assign({preset: activePreset || "", companyName}, hostInfo())));
+  SESS.report = true;                                  // сессия дошла до отчёта
+  SESS.tariff = lastCalc.tariff.chosen.name;
+  SESS.deploy = "";
+  sessTouch(); sendSession("report");                  // снимок сразу, не дожидаясь ухода
+}
+function logCopy(){
+  if(!lastCalc) return;
+  copiesCount++;
+  sendLog(buildCopyRecord(lastCalc, Object.assign({preset: activePreset || ""}, hostInfo())));
+  sessTouch(); sendSession("copy");
+}
+// снимок сессии ядра дополняем полями Коворка: оборачиваем sendLog, чтобы не трогать канон
+const coreSendLog = sendLog;
+sendLog = function(record){
+  if(record && record.type === "session") Object.assign(record, coworkSessionFields(lastCalc, {preset: activePreset || "", copies: copiesCount}));
+  return coreSendLog(record);
+};
+
 // @core:info-modal
 const infoModal = document.createElement("div");
 infoModal.className = "modal-overlay"; infoModal.hidden = true;
@@ -888,8 +1786,11 @@ document.addEventListener("click", e=>{
 });
 // @core:end
 
-applyPreset(DEFAULT_PRESET);   // стартовый пресет (T11 будет восстанавливать сохранённое состояние)
-recompute();
+renderPresets();
+renderGroups();
+renderTiers();
+if(restoreState()){ syncCards(); recompute(); }   // прошлый заход: задачи, поля, компания, пресет, тариф
+else choosePreset(DEFAULT_PRESET);
 </script>
 <div id="stage-badge" style="position:fixed;top:0;left:0;z-index:2147483647;background:#e0245e;color:#fff;font:800 12px/1 Manrope,-apple-system,Segoe UI,sans-serif;letter-spacing:.14em;padding:8px 14px;border-radius:0 0 12px 0;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none">STAGING</div></body>
 </html>

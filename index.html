@@ -44,6 +44,16 @@
     line-height:1.08;letter-spacing:-.015em;margin:0;padding-bottom:.05em;
     background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
   .head p,.head .lede{color:var(--muted);font-size:16px;max-width:66ch;margin:18px 0 0;line-height:1.6}
+
+  /* переключатель между продуктами линейки (BitrixGPT ⇄ Коворк/Код) — акцент задаёт продукт (.sel переопределяется у Коворка) */
+  .head-top{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;margin-bottom:12px}
+  .head-top .eyebrow{margin:0}
+  .prod-switch{display:flex;gap:4px;background:var(--panel);border-radius:14px;padding:4px;flex:none}
+  .prod-opt{border:0;border-radius:11px;background:transparent;padding:8px 14px;font:inherit;font-family:Manrope,sans-serif;font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;white-space:nowrap;display:inline-block;transition:background-color .15s,color .15s,box-shadow .15s}
+  .prod-opt.sel{background:var(--grad-cta);color:#fff;box-shadow:0 2px 8px rgba(40,40,90,.18);cursor:default}
+  .prod-opt:not(.sel):hover{color:var(--ink);background:rgba(0,0,0,.05)}
+  @media(max-width:600px){.prod-switch{width:100%}.prod-opt{flex:1;text-align:center}}
+
   .hint{background:var(--panel);border:0;color:var(--muted);
     border-radius:14px;padding:13px 18px;font-size:14px;margin-bottom:20px}
 
@@ -380,7 +390,13 @@
 <div class="wrap">
   <div class="spectrum"></div>
   <div class="head">
-    <p class="eyebrow">Bitrix24 · BitrixGPT · Калькулятор</p>
+    <div class="head-top">
+      <p class="eyebrow">Bitrix24 · BitrixGPT · Калькулятор</p>
+      <div class="prod-switch" aria-label="Другой продукт линейки Bitrix24 AI">
+        <span class="prod-opt sel" aria-current="page">BitrixGPT</span>
+        <a class="prod-opt" href="https://cowork.bitrixgpt.online/">Коворк/Код</a>
+      </div>
+    </div>
     <h1>Экономия от внедрения BitrixGPT</h1>
     <p class="lede">Оцените экономический эффект от внедрения ИИ BitrixGPT в Битрикс24. Отметьте релевантные сценарии и при необходимости скорректируйте значения — расчёт обновляется мгновенно.</p>
   </div>
@@ -1785,22 +1801,26 @@ function buildReportHtml(tariff, company, isBox){
     // ---- версия calc: самоподключение + заявка на помощь ----
     const CTA_SELF = "https://helpdesk.bitrix24.ru/open/28790658/";   // инструкция по подключению
     const CTA_HELP = "https://www.bitrix24.ru/register/ai.php";       // форма заявки на помощь
+    // трекинговые ссылки (для href/QR) с utm-меткой — отличить переходы из отчёта; отображаемый текст остаётся чистым через shortUrl(CTA_*)
+    const withUtm = (u, content) => u + (u.includes("?") ? "&" : "?") + "utm_source=bitrixgpt_calc&utm_medium=report&utm_content=" + content;
+    const CTA_SELF_TRACK = withUtm(CTA_SELF, "self");
+    const CTA_HELP_TRACK = withUtm(CTA_HELP, "request");
     const shortUrl = u => u.replace(/^https?:\/\//,"").replace(/^www\./,"").replace(/\/$/,"");
     return "<section class='cta-sec'><p class='sec-eyebrow'>Как подключить BitrixGPT</p>"
       + "<div class='cta-grid'>"
       + "<div class='cta-card primary'>"
         + "<div class='cta-h'><span class='cta-i'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2 3 14h7l-1 8 10-12h-7z'/></svg></span>Подключить самостоятельно</div>"
         + "<div class='cta-p'>Пошаговая инструкция по подключению BitrixGPT — можно настроить самим, без ожидания.</div>"
-        + "<a class='cta-btn' href='"+CTA_SELF+"' target='_blank' rel='noopener'>Открыть инструкцию <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14M13 6l6 6-6 6'/></svg></a>"
+        + "<a class='cta-btn' href='"+CTA_SELF_TRACK+"' target='_blank' rel='noopener'>Открыть инструкцию <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14M13 6l6 6-6 6'/></svg></a>"
         + "<div class='cta-url'>"+shortUrl(CTA_SELF)+"</div>"
-        + "<div class='cta-qr'><span class='qrbox'>"+makeQrSvg(CTA_SELF)+"</span><span class='cta-cap'>Наведите камеру телефона — откроется инструкция по подключению</span></div>"
+        + "<div class='cta-qr'><span class='qrbox'>"+makeQrSvg(CTA_SELF_TRACK)+"</span><span class='cta-cap'>Наведите камеру телефона — откроется инструкция по подключению</span></div>"
       + "</div>"
       + "<div class='cta-card'>"
         + "<div class='cta-h'><span class='cta-i alt'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg></span>Нужна помощь с внедрением</div>"
         + "<div class='cta-p'>Поможем подобрать сценарии и настроить под ваши процессы. Оставьте заявку — специалисты Битрикс24 свяжутся с вами.</div>"
-        + "<a class='cta-btn sec' href='"+CTA_HELP+"' target='_blank' rel='noopener'>Оставить заявку</a>"
+        + "<a class='cta-btn sec' href='"+CTA_HELP_TRACK+"' target='_blank' rel='noopener'>Оставить заявку</a>"
         + "<div class='cta-url'>"+shortUrl(CTA_HELP)+"</div>"
-        + "<div class='cta-qr'><span class='qrbox'>"+makeQrSvg(CTA_HELP)+"</span><span class='cta-cap'>Скан — откроется форма заявки на помощь</span></div>"
+        + "<div class='cta-qr'><span class='qrbox'>"+makeQrSvg(CTA_HELP_TRACK)+"</span><span class='cta-cap'>Скан — откроется форма заявки на помощь</span></div>"
       + "</div>"
       + "</div></section>";
   })();
@@ -2018,6 +2038,7 @@ deployToggleEl.querySelectorAll(".dt-opt").forEach(b=>{
     deployMode = b.dataset.mode;
     deployToggleEl.querySelectorAll(".dt-opt").forEach(o=>o.classList.toggle("sel", o===b));
     renderTariffList();
+    SESS.deploy = deployMode; sessTouch();
   });
 });
 
@@ -2191,6 +2212,10 @@ document.addEventListener("click", e=>{
     if(/^https?:\/\//i.test(url)) window.open(url, "_blank", "noopener");
     else openDrawerFrame(url, m.dataset.title);
   }
+});
+// переключатель продуктов линейки (BitrixGPT ⇄ Коворк/Код) → вкладка «Лендинги»
+document.querySelectorAll(".prod-switch a.prod-opt[href]").forEach(a=>{
+  a.addEventListener("click", ()=> logLanding(a.href, a.textContent.trim()));
 });
 // иконка в статичные кнопки-«i» (итоговый блок)
 document.querySelectorAll(".info-btn:empty").forEach(b=> b.innerHTML = ICON_INFO);
